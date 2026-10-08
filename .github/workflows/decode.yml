@@ -1,0 +1,52 @@
+name: Decode crash backtrace
+
+# Ręcznie: buduje firmware z podanego commita (z tą samą wersją) i tłumaczy adresy
+# z logu "CRASH DETECTED" na funkcje/linie kodu. Nic nie publikuje.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Commit / gałąź do zbudowania"
+        required: true
+        default: main
+      version:
+        description: "Wersja firmware z logu (np. 2026.10.08.11)"
+        required: true
+      addresses:
+        description: "Adresy pc/bt z logu, oddzielone spacjami"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - name: secrets.yaml (wartości testowe – nie wpływają na adresy kodu)
+        run: |
+          {
+            echo "api_encryption_key: \"$(openssl rand -base64 32)\""
+            echo "web_password: \"test\""
+            echo "ap_password: \"testtest\""
+          } > secrets.yaml
+      - name: Kompilacja
+        run: esphome -s fw_version "${{ inputs.version }}" compile z2z-lcd7.yaml
+      - name: addr2line
+        run: |
+          ELF=$(find .esphome/build -name firmware.elf | head -1)
+          A2L=$(find ~/.platformio ~/.espressif .esphome -name 'xtensa-esp32s3-elf-addr2line' -type f 2>/dev/null | head -1)
+          echo "ELF=$ELF"; echo "A2L=$A2L"
+          echo "## Backtrace" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          "$A2L" -pfiaC -e "$ELF" ${{ inputs.addresses }} | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
