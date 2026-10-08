@@ -44,7 +44,7 @@ jobs:
       - name: addr2line
         run: |
           ELF=$(find .esphome/build -name firmware.elf | head -1)
-          A2L=$(find ~/.platformio ~/.espressif .esphome -name 'xtensa-esp32s3-elf-addr2line' -type f 2>/dev/null | head -1)
+          A2L=$(find / -type f \( -name 'xtensa-esp32s3-elf-addr2line' -o -name 'xtensa-esp-elf-addr2line' \) 2>/dev/null | head -1)
           echo "ELF=$ELF"; echo "A2L=$A2L"
           echo "## Backtrace" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
