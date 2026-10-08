@@ -1,0 +1,204 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Motyw: kolory, czcionki (z polskimi znakami), ikony MDI, style LVGL.
+# Ikony w config/home.yaml podajesz jako $ic_<nazwa>, np. $ic_lightbulb.
+# Nowa ikona: dopisz ją tutaj (kod z https://pictogrammers.com/library/mdi/)
+# ─────────────────────────────────────────────────────────────────────────────
+substitutions:
+  ic_lightbulb: "\U000F0335"
+  ic_lightbulb_group: "\U000F1253"
+  ic_television: "\U000F0502"
+  ic_power_plug: "\U000F06A5"
+  ic_socket: "\U000F07E7"
+  ic_coffee_maker: "\U000F109F"
+  ic_kettle: "\U000F05FA"
+  ic_printer_3d: "\U000F0E5B"
+  ic_thermometer: "\U000F050F"
+  ic_rain: "\U000F0597"
+  ic_cloud: "\U000F0595"
+  ic_sunny: "\U000F0599"
+  ic_umbrella: "\U000F054A"
+  ic_home_account: "\U000F0826"
+  ic_account: "\U000F0004"
+  ic_account_off: "\U000F0012"
+  ic_server: "\U000F048B"
+  ic_server_off: "\U000F048F"
+  ic_home_assistant: "\U000F07D0"
+  ic_wifi: "\U000F05A9"
+  ic_wifi_off: "\U000F05AA"
+  ic_radiator: "\U000F0438"
+  ic_thermostat: "\U000F0393"
+  ic_fire: "\U000F0238"
+  ic_snowflake: "\U000F0717"
+  ic_minus: "\U000F0374"
+  ic_plus: "\U000F0415"
+  ic_car: "\U000F010B"
+  ic_car_electric: "\U000F0B6C"
+  ic_battery: "\U000F0079"
+  ic_battery_charging: "\U000F0084"
+  ic_battery_alert: "\U000F0083"
+  ic_gas_station: "\U000F0298"
+  ic_map_marker: "\U000F034E"
+  ic_lock: "\U000F033E"
+  ic_lock_open: "\U000F0FC6"
+  ic_robot_vacuum: "\U000F070D"
+  ic_play: "\U000F040A"
+  ic_pause: "\U000F03E4"
+  ic_dock: "\U000F0F9C"
+  ic_dishwasher: "\U000F0AAC"
+  ic_dishwasher_alert: "\U000F11B8"
+  ic_flower: "\U000F024A"
+  ic_sprout: "\U000F0E66"
+  ic_water: "\U000F058C"
+  ic_water_alert: "\U000F1502"
+  ic_alert: "\U000F0026"
+  ic_alert_circle: "\U000F0028"
+  ic_check_circle: "\U000F05E0"
+  ic_cog: "\U000F0493"
+  ic_update: "\U000F06B0"
+  ic_restart: "\U000F0709"
+  ic_close: "\U000F0156"
+  ic_fan: "\U000F0210"
+  ic_speaker: "\U000F04C3"
+  ic_air_conditioner: "\U000F001B"
+  ic_washing_machine: "\U000F072A"
+  ic_timer: "\U000F051B"
+  ic_sofa: "\U000F04B9"
+font:
+  - file: fonts/Nunito-SemiBold.ttf
+    id: f14
+    size: 14
+    bpp: 4
+    glyphsets: [GF_Latin_Core]
+  - file: fonts/Nunito-SemiBold.ttf
+    id: f18
+    size: 18
+    bpp: 4
+    glyphsets: [GF_Latin_Core]
+  - file: fonts/Nunito-SemiBold.ttf
+    id: f22
+    size: 22
+    bpp: 4
+    glyphsets: [GF_Latin_Core]
+  - file: fonts/Nunito-SemiBold.ttf
+    id: f28
+    size: 28
+    bpp: 4
+    glyphsets: [GF_Latin_Core]
+  - file: fonts/Nunito-SemiBold.ttf
+    id: f40
+    size: 40
+    bpp: 4
+    glyphsets: [GF_Latin_Core]
+  - file: fonts/Nunito-SemiBold.ttf
+    id: f64
+    size: 64
+    bpp: 4
+    glyphsets: [GF_Latin_Core]
+  - file: fonts/materialdesignicons-webfont.ttf
+    id: i24
+    size: 24
+    bpp: 4
+    glyphs: [$ic_lightbulb, $ic_lightbulb_group, $ic_television, $ic_power_plug, $ic_socket, $ic_coffee_maker, $ic_kettle, $ic_printer_3d, $ic_thermometer, $ic_rain, $ic_cloud, $ic_sunny, $ic_umbrella, $ic_home_account, $ic_account, $ic_account_off, $ic_server, $ic_server_off, $ic_home_assistant, $ic_wifi, $ic_wifi_off, $ic_radiator, $ic_thermostat, $ic_fire, $ic_snowflake, $ic_minus, $ic_plus, $ic_car, $ic_car_electric, $ic_battery, $ic_battery_charging, $ic_battery_alert, $ic_gas_station, $ic_map_marker, $ic_lock, $ic_lock_open, $ic_robot_vacuum, $ic_play, $ic_pause, $ic_dock, $ic_dishwasher, $ic_dishwasher_alert, $ic_flower, $ic_sprout, $ic_water, $ic_water_alert, $ic_alert, $ic_alert_circle, $ic_check_circle, $ic_cog, $ic_update, $ic_restart, $ic_close, $ic_fan, $ic_speaker, $ic_air_conditioner, $ic_washing_machine, $ic_timer, $ic_sofa]
+  - file: fonts/materialdesignicons-webfont.ttf
+    id: i32
+    size: 32
+    bpp: 4
+    glyphs: [$ic_lightbulb, $ic_lightbulb_group, $ic_television, $ic_power_plug, $ic_socket, $ic_coffee_maker, $ic_kettle, $ic_printer_3d, $ic_thermometer, $ic_rain, $ic_cloud, $ic_sunny, $ic_umbrella, $ic_home_account, $ic_account, $ic_account_off, $ic_server, $ic_server_off, $ic_home_assistant, $ic_wifi, $ic_wifi_off, $ic_radiator, $ic_thermostat, $ic_fire, $ic_snowflake, $ic_minus, $ic_plus, $ic_car, $ic_car_electric, $ic_battery, $ic_battery_charging, $ic_battery_alert, $ic_gas_station, $ic_map_marker, $ic_lock, $ic_lock_open, $ic_robot_vacuum, $ic_play, $ic_pause, $ic_dock, $ic_dishwasher, $ic_dishwasher_alert, $ic_flower, $ic_sprout, $ic_water, $ic_water_alert, $ic_alert, $ic_alert_circle, $ic_check_circle, $ic_cog, $ic_update, $ic_restart, $ic_close, $ic_fan, $ic_speaker, $ic_air_conditioner, $ic_washing_machine, $ic_timer, $ic_sofa]
+  - file: fonts/materialdesignicons-webfont.ttf
+    id: i48
+    size: 48
+    bpp: 4
+    glyphs: [$ic_lightbulb, $ic_lightbulb_group, $ic_television, $ic_power_plug, $ic_socket, $ic_coffee_maker, $ic_kettle, $ic_printer_3d, $ic_thermometer, $ic_rain, $ic_cloud, $ic_sunny, $ic_umbrella, $ic_home_account, $ic_account, $ic_account_off, $ic_server, $ic_server_off, $ic_home_assistant, $ic_wifi, $ic_wifi_off, $ic_radiator, $ic_thermostat, $ic_fire, $ic_snowflake, $ic_minus, $ic_plus, $ic_car, $ic_car_electric, $ic_battery, $ic_battery_charging, $ic_battery_alert, $ic_gas_station, $ic_map_marker, $ic_lock, $ic_lock_open, $ic_robot_vacuum, $ic_play, $ic_pause, $ic_dock, $ic_dishwasher, $ic_dishwasher_alert, $ic_flower, $ic_sprout, $ic_water, $ic_water_alert, $ic_alert, $ic_alert_circle, $ic_check_circle, $ic_cog, $ic_update, $ic_restart, $ic_close, $ic_fan, $ic_speaker, $ic_air_conditioner, $ic_washing_machine, $ic_timer, $ic_sofa]
+
+color:
+  - id: c_bg
+    hex: "0F1115"
+  - id: c_card
+    hex: "1C2028"
+  - id: c_card2
+    hex: "262B35"
+  - id: c_text
+    hex: "ECEFF1"
+  - id: c_muted
+    hex: "8A94A6"
+  - id: c_accent
+    hex: "FFB300"
+  - id: c_ok
+    hex: "43A047"
+  - id: c_warn
+    hex: "FF8F00"
+  - id: c_err
+    hex: "E53935"
+  - id: c_heat
+    hex: "FF7043"
+  - id: c_cool
+    hex: "42A5F5"
+  - id: c_water
+    hex: "29B6F6"
+
+lvgl:
+  default_font: f22
+  bottom_layer:
+    bg_color: c_bg
+    bg_opa: COVER
+  theme:
+    label:
+      text_color: c_text
+    button:
+      bg_color: c_card2
+      radius: 14
+      shadow_width: 0
+      text_color: c_text
+      pressed:
+        bg_color: c_accent
+    bar:
+      bg_color: c_card2
+      radius: 6
+      indicator:
+        radius: 6
+  style_definitions:
+    - id: page_style
+      bg_color: c_bg
+      bg_opa: COVER
+      border_width: 0
+      radius: 0
+      pad_top: 72
+      pad_bottom: 40
+      pad_left: 16
+      pad_right: 16
+    - id: title_style
+      text_font: f28
+      text_color: c_muted
+      width: 100%
+    - id: tile_style            # aktywne urządzenie na pulpicie głównym
+      width: 176
+      height: 128
+      radius: 20
+      bg_color: 0x3A2E10
+      bg_opa: COVER
+      border_width: 2
+      border_color: c_accent
+      pad_all: 12
+      shadow_width: 0
+    - id: alert_style           # alert (próg przekroczony / zmywarka / błąd)
+      width: 364
+      height: 128
+      radius: 20
+      bg_color: 0x3A1A10
+      bg_opa: COVER
+      border_width: 2
+      border_color: c_warn
+      pad_all: 12
+      shadow_width: 0
+    - id: card_style            # karta na pozostałych pulpitach
+      radius: 20
+      bg_color: c_card
+      bg_opa: COVER
+      border_width: 0
+      pad_all: 14
+      shadow_width: 0
+    - id: empty_style
+      text_font: f28
+      text_color: c_muted
+      width: 100%
+      text_align: center

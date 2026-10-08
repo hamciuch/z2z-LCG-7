@@ -1,0 +1,163 @@
+name: Build & publish firmware
+
+# push na main  -> build + publikacja na GitHub Pages (panel widzi aktualizację)
+# tag v*        -> to samo + GitHub Release z plikami .bin
+# pull request  -> tylko kompilacja (sprawdzenie)
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths-ignore: ["**.md", "tools/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ESPHOME_VERSION: "2026.9.1"
+  CONFIG: z2z-lcd7.yaml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      publish: ${{ steps.sec.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wersja firmware
+        id: ver
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            V="${GITHUB_REF_NAME#v}"
+          else
+            V="$(date -u +%Y.%m.%d).${GITHUB_RUN_NUMBER}"
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Wersja: $V"
+
+      - name: secrets.yaml z GitHub Secrets
+        id: sec
+        env:
+          API_ENCRYPTION_KEY: ${{ secrets.API_ENCRYPTION_KEY }}
+          WEB_PASSWORD: ${{ secrets.WEB_PASSWORD }}
+          AP_PASSWORD: ${{ secrets.AP_PASSWORD }}
+        run: |
+          missing=""
+          [ -z "$API_ENCRYPTION_KEY" ] && missing="$missing API_ENCRYPTION_KEY"
+          [ -z "$WEB_PASSWORD" ] && missing="$missing WEB_PASSWORD"
+          [ -z "$AP_PASSWORD" ] && missing="$missing AP_PASSWORD"
+          if [ -n "$missing" ]; then
+            # Bez sekretów tylko sprawdzamy kompilację – NIE publikujemy (klucze nie pasowałyby do panelu)
+            echo "::warning::Brak sekretów:$missing – kompilacja testowa, bez publikacji OTA. Instrukcja w README."
+            API_ENCRYPTION_KEY="$(openssl rand -base64 32)"; WEB_PASSWORD=test; AP_PASSWORD=testtest
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo "api_encryption_key: \"$API_ENCRYPTION_KEY\""
+            echo "web_password: \"$WEB_PASSWORD\""
+            echo "ap_password: \"$AP_PASSWORD\""
+          } > secrets.yaml
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Cache PlatformIO / ESPHome
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            .esphome/build/*/.pioenvs
+            .esphome/build/*/managed_components
+            .esphome/external_files
+          key: esphome-${{ env.ESPHOME_VERSION }}-${{ hashFiles('z2z-lcd7.yaml', 'hardware/**') }}
+          restore-keys: esphome-${{ env.ESPHOME_VERSION }}-
+
+      - name: Instalacja ESPHome
+        run: pip install "esphome==${ESPHOME_VERSION}"
+
+      - name: Walidacja
+        run: esphome -s fw_version "${{ steps.ver.outputs.version }}" config "$CONFIG" > /dev/null
+
+      - name: Kompilacja
+        run: esphome -s fw_version "${{ steps.ver.outputs.version }}" compile "$CONFIG"
+
+      - name: Przygotowanie plików (manifest OTA + instalator WWW)
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -e
+          BUILD=$(dirname "$(find .esphome/build -name firmware.factory.bin | head -1)")
+          echo "Build dir: $BUILD"
+          mkdir -p site/firmware
+          cp "$BUILD/firmware.factory.bin" site/firmware/z2z-panel.factory.bin
+          cp "$BUILD/firmware.ota.bin"     site/firmware/z2z-panel.ota.bin
+          MD5=$(md5sum site/firmware/z2z-panel.ota.bin | cut -d' ' -f1)
+          SUMMARY=$(git log -1 --pretty=%s | tr -d '"\\' | cut -c1-120)
+          cat > site/firmware/manifest.json <<EOF
+          {
+            "name": "Panel Z2Z",
+            "version": "${VERSION}",
+            "home_assistant_domain": "esphome",
+            "new_install_prompt_erase": true,
+            "builds": [
+              {
+                "chipFamily": "ESP32-S3",
+                "parts": [ { "path": "z2z-panel.factory.bin", "offset": 0 } ],
+                "ota": {
+                  "path": "z2z-panel.ota.bin",
+                  "md5": "${MD5}",
+                  "summary": "${SUMMARY}",
+                  "release_url": "https://github.com/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}"
+                }
+              }
+            ]
+          }
+          EOF
+          sed "s/__VERSION__/${VERSION}/g; s#__REPO__#${GITHUB_REPOSITORY}#g" web/index.html > site/index.html
+          cat site/firmware/manifest.json
+          ls -la site/firmware
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ steps.ver.outputs.version }}
+          path: site/firmware/*.bin
+
+      - name: Pages artifact
+        if: steps.sec.outputs.publish == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: GitHub Release (tylko tagi)
+        if: startsWith(github.ref, 'refs/tags/v') && steps.sec.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" site/firmware/*.bin site/firmware/manifest.json \
+            --title "Panel Z2Z ${{ steps.ver.outputs.version }}" --generate-notes
+
+  deploy:
+    if: needs.build.outputs.publish == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

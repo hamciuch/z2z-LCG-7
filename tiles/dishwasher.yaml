@@ -1,0 +1,151 @@
+# Zmywarka: karta na pulpicie "Zmywarka" + alert "Wyjmij naczynia".
+# Alert pojawia się przy przejściu z pracy (running_states) do końca
+# (finished_states) i znika po otwarciu drzwi (door_open_states) albo po dotknięciu.
+# Stan alertu przetrwa restart panelu.
+# vars: uid, name, state_entity, running_states, finished_states,
+#       door_entity, door_open_states, remaining_entity
+globals:
+  - id: ${uid}_unload
+    type: bool
+    restore_value: true
+    initial_value: "false"
+  - id: ${uid}_was_running
+    type: bool
+    restore_value: true
+    initial_value: "false"
+
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_st
+    entity_id: ${state_entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          if (x == "unavailable" || x == "unknown" || x.empty()) return;
+          bool running = z2z::in_list(x, "${running_states}");
+          bool finished = z2z::in_list(x, "${finished_states}");
+          if (running) {
+            id(${uid}_was_running) = true;
+            id(${uid}_unload) = false;
+          } else if (finished && id(${uid}_was_running)) {
+            id(${uid}_was_running) = false;
+            id(${uid}_unload) = true;
+          } else if (!finished) {
+            id(${uid}_was_running) = false;
+          }
+          lv_label_set_text(id(${uid}_state), z2z::pl(x).c_str());
+          z2z::set_text_color(id(${uid}_icon), running ? z2z::C_ACCENT : (finished ? z2z::C_OK : z2z::C_MUTED));
+      - script.execute: ${uid}_refresh
+
+  - platform: homeassistant
+    id: ${uid}_door
+    entity_id: ${door_entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          bool open = z2z::in_list(x, "${door_open_states}");
+          if (open) id(${uid}_unload) = false;
+          lv_label_set_text(id(${uid}_door_lbl), open ? "Drzwi otwarte" : "Drzwi zamknięte");
+      - script.execute: ${uid}_refresh
+
+  - platform: homeassistant
+    id: ${uid}_rem
+    entity_id: ${remaining_entity}
+    internal: true
+    on_value:
+      - script.execute: ${uid}_refresh
+
+script:
+  - id: ${uid}_refresh
+    mode: restart
+    then:
+      - lambda: |-
+          auto now = id(ha_time).now();
+          int64_t now_utc = now.is_valid() ? (int64_t) now.timestamp : 0;
+          bool running = z2z::in_list(id(${uid}_st).state, "${running_states}");
+          std::string rem = running ? z2z::remaining(id(${uid}_rem).state, now_utc) : "";
+          lv_label_set_text(id(${uid}_rem_lbl), rem.empty() ? "" : ("Pozostało: " + rem).c_str());
+          if (z2z::set_visible(id(${uid}_alert), id(${uid}_unload))) id(wake_screen).execute();
+      - script.execute: home_refresh
+
+interval:
+  - interval: 60s
+    then:
+      - script.execute: ${uid}_refresh
+
+lvgl:
+  pages:
+    - id: !extend page_dishwasher
+      widgets:
+        - obj:
+            styles: card_style
+            width: 100%
+            height: 250
+            scrollable: false
+            widgets:
+              - label:
+                  id: ${uid}_icon
+                  align: LEFT_MID
+                  x: 10
+                  text_font: i48
+                  text_color: c_muted
+                  text: $ic_dishwasher
+              - label:
+                  align: TOP_LEFT
+                  x: 90
+                  y: 10
+                  text_font: f22
+                  text_color: c_muted
+                  text: "${name}"
+              - label:
+                  id: ${uid}_state
+                  align: TOP_LEFT
+                  x: 90
+                  y: 44
+                  text_font: f40
+                  text: "--"
+              - label:
+                  id: ${uid}_rem_lbl
+                  align: TOP_LEFT
+                  x: 90
+                  y: 110
+                  text_font: f28
+                  text_color: c_accent
+                  text: ""
+              - label:
+                  id: ${uid}_door_lbl
+                  align: TOP_LEFT
+                  x: 90
+                  y: 160
+                  text_font: f22
+                  text_color: c_muted
+                  text: ""
+
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_alert
+            styles: alert_style
+            hidden: true
+            on_click:
+              - lambda: id(${uid}_unload) = false;
+              - script.execute: ${uid}_refresh
+            widgets:
+              - label:
+                  align: LEFT_MID
+                  text_font: i48
+                  text_color: c_ok
+                  text: $ic_dishwasher_alert
+              - label:
+                  align: TOP_LEFT
+                  x: 64
+                  width: 270
+                  long_mode: WRAP
+                  text_font: f22
+                  text: "Zmywarka skończyła – wyjmij naczynia"
+              - label:
+                  align: BOTTOM_LEFT
+                  x: 64
+                  text_font: f14
+                  text_color: c_muted
+                  text: "zniknie po otwarciu drzwi (lub dotknij)"

@@ -1,0 +1,174 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Belka główna (zawsze na wierzchu): zegar, domownicy, temperatura na balkonie,
+# deszcz, serwer, połączenie z HA/WiFi. Kropki nawigacji na dole.
+# Dotknięcie zegara otwiera panel ustawień.
+# ─────────────────────────────────────────────────────────────────────────────
+
+lvgl:
+  top_layer:
+    widgets:
+      - obj:
+          id: topbar
+          x: 0
+          y: 0
+          width: 800
+          height: 60
+          radius: 0
+          bg_color: c_card
+          bg_opa: COVER
+          border_width: 0
+          pad_all: 0
+          scrollable: false
+          widgets:
+            - button:
+                id: btn_clock
+                x: 6
+                align: LEFT_MID
+                width: 250
+                height: 56
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: settings_open
+                widgets:
+                  - label:
+                      id: lbl_clock
+                      x: 8
+                      align: LEFT_MID
+                      text_font: f40
+                      text: "--:--"
+                  - label:
+                      id: lbl_date
+                      x: 126
+                      align: LEFT_MID
+                      text_font: f18
+                      text_color: c_muted
+                      text: ""
+            # temperatura na balkonie
+            - label:
+                id: ico_temp
+                x: 540
+                align: LEFT_MID
+                text_font: i24
+                text_color: c_muted
+                text: $ic_thermometer
+            - label:
+                id: lbl_temp
+                x: 566
+                align: LEFT_MID
+                text_font: f28
+                text: "--°"
+            # deszcz
+            - label:
+                id: ico_rain
+                x: 664
+                align: LEFT_MID
+                text_font: i32
+                text_color: c_muted
+                text: $ic_cloud
+            # serwer
+            - label:
+                id: ico_server
+                x: 712
+                align: LEFT_MID
+                text_font: i32
+                text_color: c_muted
+                text: $ic_server
+            # Home Assistant / WiFi
+            - label:
+                id: ico_ha
+                x: 756
+                align: LEFT_MID
+                text_font: i32
+                text_color: c_muted
+                text: $ic_home_assistant
+
+      # kropki nawigacji (dotknięcie = przejście do pulpitu)
+      - obj:
+          id: dots
+          align: BOTTOM_MID
+          y: -8
+          width: SIZE_CONTENT
+          height: 22
+          bg_opa: TRANSP
+          border_width: 0
+          pad_all: 4
+          scrollable: false
+          layout:
+            type: flex
+            flex_flow: ROW
+            pad_column: 12
+            flex_align_cross: CENTER
+          widgets:
+            - obj: { id: dot0, width: 12, height: 12, radius: 6, border_width: 0, bg_color: c_accent, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 0 } }] }
+            - obj: { id: dot1, hidden: "${hide_page_heating}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 1 } }] }
+            - obj: { id: dot2, hidden: "${hide_page_car}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 2 } }] }
+            - obj: { id: dot3, hidden: "${hide_page_vacuum}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 3 } }] }
+            - obj: { id: dot4, hidden: "${hide_page_dishwasher}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 4 } }] }
+            - obj: { id: dot5, hidden: "${hide_page_plants}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 5 } }] }
+
+sensor:
+  - platform: homeassistant
+    id: ha_balcony_temp
+    entity_id: ${balcony_temp_entity}
+    on_value:
+      - lvgl.label.update:
+          id: lbl_temp
+          text: !lambda return z2z::fmt(x, 1, "°");
+
+text_sensor:
+  - platform: homeassistant
+    id: ha_rain
+    entity_id: ${rain_entity}
+    on_value:
+      - lambda: |-
+          bool rain = z2z::in_list(x, "${rain_states}");
+          lv_label_set_text(id(ico_rain), rain ? "${ic_umbrella}" : "${ic_cloud}");
+          z2z::set_text_color(id(ico_rain), rain ? 0x29B6F6 : z2z::C_MUTED);
+  - platform: homeassistant
+    id: ha_server
+    entity_id: ${server_entity}
+    on_value:
+      - lambda: |-
+          bool ok = z2z::in_list(x, "${server_ok_states}");
+          lv_label_set_text(id(ico_server), ok ? "${ic_server}" : "${ic_server_off}");
+          z2z::set_text_color(id(ico_server), ok ? z2z::C_OK : z2z::C_ERR);
+      - if:
+          condition:
+            lambda: return !z2z::in_list(x, "${server_ok_states}");
+          then:
+            - script.execute: wake_screen
+
+script:
+  - id: clock_refresh
+    then:
+      - lambda: |-
+          auto t = id(ha_time).now();
+          if (!t.is_valid()) t = id(sntp_time).now();
+          if (!t.is_valid()) return;
+          static const char *const DN[] = {"nd", "pn", "wt", "śr", "czw", "pt", "sob"};
+          static const char *const MN[] = {"sty", "lut", "mar", "kwi", "maj", "cze",
+                                           "lip", "sie", "wrz", "paź", "lis", "gru"};
+          lv_label_set_text_fmt(id(lbl_clock), "%02d:%02d", t.hour, t.minute);
+          lv_label_set_text_fmt(id(lbl_date), "%s, %d %s", DN[(t.day_of_week + 6) % 7], t.day_of_month, MN[(t.month + 11) % 12]);
+
+  # Ikona HA: zielona = połączono, czerwona = brak API, przekreślone WiFi = brak sieci
+  - id: status_refresh
+    then:
+      - lambda: |-
+          if (!wifi::global_wifi_component->is_connected()) {
+            lv_label_set_text(id(ico_ha), "${ic_wifi_off}");
+            z2z::set_text_color(id(ico_ha), z2z::C_ERR);
+          } else if (!api::global_api_server->is_connected()) {
+            lv_label_set_text(id(ico_ha), "${ic_home_assistant}");
+            z2z::set_text_color(id(ico_ha), z2z::C_ERR);
+          } else {
+            lv_label_set_text(id(ico_ha), "${ic_home_assistant}");
+            z2z::set_text_color(id(ico_ha), id(fw_update).state == update::UPDATE_STATE_AVAILABLE ? z2z::C_ACCENT : z2z::C_OK);
+          }
+
+interval:
+  - interval: 15s
+    then:
+      - script.execute: status_refresh

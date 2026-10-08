@@ -1,0 +1,76 @@
+# Alert na pulpicie głównym, gdy wartość przekroczy próg.
+# Próg można zmieniać w HA / na stronie WWW panelu (grupa "Progi alertów").
+# Znika sam, gdy wartość wróci w normę (z histerezą).
+# vars: uid, entity, name, message, icon, mode ("below" | "above"),
+#       threshold, hysteresis, unit, decimals, min, max
+sensor:
+  - platform: homeassistant
+    id: ${uid}_v
+    entity_id: ${entity}
+    internal: true
+    on_value:
+      - script.execute: ${uid}_eval
+
+number:
+  - platform: template
+    id: ${uid}_thr
+    name: "Próg: ${name}"
+    unit_of_measurement: "${unit}"
+    min_value: ${min}
+    max_value: ${max}
+    step: 1
+    mode: box
+    optimistic: true
+    restore_value: true
+    initial_value: ${threshold}
+    entity_category: config
+    web_server:
+      sorting_group_id: grp_thresholds
+    on_value:
+      - script.execute: ${uid}_eval
+
+script:
+  - id: ${uid}_eval
+    mode: restart
+    then:
+      - lambda: |-
+          float v = id(${uid}_v).state;
+          float t = id(${uid}_thr).state;
+          bool shown = !lv_obj_has_flag(id(${uid}_tile), LV_OBJ_FLAG_HIDDEN);
+          bool below = std::string("${mode}") == "below";
+          bool alert;
+          if (isnan(v)) alert = false;
+          else if (below) alert = shown ? v < t + ${hysteresis} : v < t;
+          else alert = shown ? v > t - ${hysteresis} : v > t;
+          lv_label_set_text(id(${uid}_val), z2z::fmt(v, ${decimals}, "${unit}").c_str());
+          if (z2z::set_visible(id(${uid}_tile), alert)) id(wake_screen).execute();
+      - script.execute: home_refresh
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: alert_style
+            hidden: true
+            widgets:
+              - label:
+                  align: LEFT_MID
+                  text_font: i48
+                  text_color: c_warn
+                  text: "${icon}"
+              - label:
+                  align: TOP_LEFT
+                  x: 64
+                  width: 270
+                  long_mode: WRAP
+                  text_font: f22
+                  text: "${message}"
+              - label:
+                  id: ${uid}_val
+                  align: BOTTOM_LEFT
+                  x: 64
+                  text_font: f28
+                  text_color: c_warn
+                  text: ""

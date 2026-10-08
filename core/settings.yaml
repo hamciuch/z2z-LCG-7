@@ -1,0 +1,177 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Ustawienia w runtime – widoczne w HA i na stronie http://<ip-panelu>/
+# oraz panel ustawień na ekranie (dotknij zegara).
+# ─────────────────────────────────────────────────────────────────────────────
+
+number:
+  - platform: template
+    id: screen_timeout_min
+    name: "Wygaszanie ekranu po"
+    icon: mdi:timer-outline
+    unit_of_measurement: min
+    min_value: 0
+    max_value: 240
+    step: 1
+    mode: box
+    optimistic: true
+    restore_value: true
+    initial_value: ${screen_timeout_default}
+    entity_category: config
+    web_server:
+      sorting_group_id: grp_screen
+  - platform: template
+    id: home_return_s
+    name: "Powrót na pulpit główny po"
+    icon: mdi:home-clock
+    unit_of_measurement: s
+    min_value: 0
+    max_value: 3600
+    step: 5
+    mode: box
+    optimistic: true
+    restore_value: true
+    initial_value: ${home_return_default}
+    entity_category: config
+    web_server:
+      sorting_group_id: grp_screen
+
+switch:
+  - platform: template
+    id: auto_update
+    name: "Automatyczne aktualizacje z GitHub"
+    icon: mdi:cloud-download
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    entity_category: config
+    web_server:
+      sorting_group_id: grp_system
+
+button:
+  - platform: restart
+    name: "Restart"
+    entity_category: config
+    web_server:
+      sorting_group_id: grp_system
+  - platform: template
+    id: btn_check_update
+    name: "Sprawdź aktualizacje"
+    icon: mdi:update
+    entity_category: config
+    web_server:
+      sorting_group_id: grp_system
+    on_press:
+      - component.update: fw_update
+
+sensor:
+  - platform: wifi_signal
+    id: wifi_rssi
+    name: "WiFi sygnał"
+    update_interval: 60s
+    entity_category: diagnostic
+  - platform: uptime
+    name: "Uptime"
+    entity_category: diagnostic
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      id: ip_addr
+      name: "Adres IP"
+      entity_category: diagnostic
+  - platform: version
+    name: "Wersja ESPHome"
+    hide_timestamp: true
+    entity_category: diagnostic
+  - platform: template
+    name: "Wersja firmware"
+    entity_category: diagnostic
+    lambda: return {"${fw_version}"};
+    update_interval: never
+
+# ── Panel ustawień na ekranie ────────────────────────────────────────────────
+lvgl:
+  top_layer:
+    widgets:
+      - obj:
+          id: settings_overlay
+          hidden: true
+          width: 100%
+          height: 100%
+          bg_color: 0x000000
+          bg_opa: 70%
+          border_width: 0
+          radius: 0
+          on_click:
+            - lvgl.widget.hide: settings_overlay
+          widgets:
+            - obj:
+                align: CENTER
+                width: 560
+                height: 340
+                styles: card_style
+                bg_color: c_card2
+                clickable: true
+                scrollable: false
+                widgets:
+                  - label:
+                      align: TOP_LEFT
+                      text_font: f28
+                      text: "Ustawienia panelu"
+                  - label:
+                      id: lbl_settings_info
+                      align: TOP_LEFT
+                      y: 44
+                      text_font: f18
+                      text_color: c_muted
+                      text: ""
+                  - button:
+                      align: BOTTOM_LEFT
+                      width: 160
+                      height: 64
+                      on_click:
+                        - component.update: fw_update
+                        - delay: 3s
+                        - script.execute: settings_open
+                      widgets:
+                        - label: { align: CENTER, text: "Sprawdź\naktualizację", text_font: f18, text_align: CENTER }
+                  - button:
+                      id: btn_install
+                      align: BOTTOM_MID
+                      width: 160
+                      height: 64
+                      bg_color: c_accent
+                      on_click:
+                        - update.perform:
+                            id: fw_update
+                      widgets:
+                        - label: { align: CENTER, text: "Zainstaluj\naktualizację", text_font: f18, text_align: CENTER, text_color: 0x000000 }
+                  - button:
+                      align: BOTTOM_RIGHT
+                      width: 160
+                      height: 64
+                      on_click:
+                        - lambda: App.safe_reboot();
+                      widgets:
+                        - label: { align: CENTER, text: "Restart", text_font: f18 }
+
+script:
+  - id: settings_open
+    then:
+      - lambda: |-
+          auto &u = id(fw_update);
+          std::string latest = u.update_info.latest_version.empty() ? "?" : u.update_info.latest_version;
+          bool avail = u.state == update::UPDATE_STATE_AVAILABLE;
+          std::string ip = id(ip_addr).state;
+          char buf[400];
+          snprintf(buf, sizeof(buf),
+                   "Firmware: ${fw_version}\n"
+                   "Najnowsza na GitHub: %s%s\n"
+                   "IP: %s   (konfiguracja: http://%s/)\n"
+                   "WiFi: %.0f dBm\n"
+                   "Wygaszanie: %.0f min · powrót: %.0f s",
+                   latest.c_str(), avail ? "  ← dostępna!" : "",
+                   ip.c_str(), ip.c_str(), id(wifi_rssi).state,
+                   id(screen_timeout_min).state, id(home_return_s).state);
+          lv_label_set_text(id(lbl_settings_info), buf);
+          z2z::show(id(btn_install), avail);
+      - lvgl.widget.show: settings_overlay

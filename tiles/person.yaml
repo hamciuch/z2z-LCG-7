@@ -1,0 +1,45 @@
+# Domownik na belce głównej. Zielony = w domu, szary = poza domem.
+# vars: uid, entity (person.*), name, slot (0-3: pozycja na belce)
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_st
+    entity_id: ${entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          bool home = x == "home";
+          lv_label_set_text(id(${uid}_ico), home ? "${ic_home_account}" : "${ic_account}");
+          z2z::set_text_color(id(${uid}_ico), home ? z2z::C_OK : 0x4A5263);
+          z2z::set_text_color(id(${uid}_name), home ? z2z::C_TEXT : 0x4A5263);
+
+lvgl:
+  top_layer:
+    widgets:
+      - obj:
+          x: ${270 + slot * 66}
+          y: 0
+          width: 64
+          height: 60
+          bg_opa: TRANSP
+          border_width: 0
+          pad_all: 0
+          scrollable: false
+          clickable: false
+          widgets:
+            - label:
+                id: ${uid}_ico
+                align: TOP_MID
+                y: 2
+                text_font: i32
+                text_color: 0x4A5263
+                text: $ic_account
+            - label:
+                id: ${uid}_name
+                align: BOTTOM_MID
+                y: -2
+                width: 64
+                long_mode: DOT
+                text_align: CENTER
+                text_font: f14
+                text_color: 0x4A5263
+                text: "${name}"

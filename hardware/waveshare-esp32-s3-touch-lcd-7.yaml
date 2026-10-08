@@ -1,0 +1,99 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Waveshare ESP32-S3-Touch-LCD-7  (800×480, ESP32-S3N16R8, GT911, CH422G)
+# https://www.waveshare.com/esp32-s3-touch-lcd-7.htm
+#
+# Jeśli dotyk jest obrócony/odbity – zmień touch_* w config/home.yaml.
+# ─────────────────────────────────────────────────────────────────────────────
+
+esp32:
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+    advanced:
+      execute_from_psram: true
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+preferences:
+  flash_write_interval: 5min
+
+# Ekspander IO – steruje podświetleniem, resetem LCD i dotyku
+ch422g:
+  - id: ch422g_hub
+
+i2c:
+  - id: bus_a
+    sda: GPIO8
+    scl: GPIO9
+    scan: false
+
+# Podświetlenie na tej płytce jest tylko ON/OFF (EXIO2)
+output:
+  - platform: gpio
+    id: backlight_output
+    pin:
+      ch422g: ch422g_hub
+      number: 2
+      mode:
+        output: true
+
+light:
+  - platform: binary
+    id: backlight
+    name: "Podświetlenie"
+    icon: mdi:monitor
+    output: backlight_output
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: gt911
+    id: my_touchscreen
+    display: my_display
+    i2c_id: bus_a
+    interrupt_pin: GPIO4
+    reset_pin:
+      ch422g: ch422g_hub
+      number: 1
+      mode: OUTPUT
+    transform:
+      swap_xy: ${touch_swap_xy}
+      mirror_x: ${touch_mirror_x}
+      mirror_y: ${touch_mirror_y}
+
+display:
+  - platform: mipi_rgb
+    model: ESP32-S3-TOUCH-LCD-7-800X480
+    id: my_display
+    update_interval: never
+    auto_clear_enabled: false
+    color_order: RGB
+    pclk_frequency: 16MHz
+    dimensions:
+      width: 800
+      height: 480
+    reset_pin:
+      ch422g: ch422g_hub
+      number: 3
+    de_pin:
+      number: GPIO5
+    hsync_pin:
+      number: GPIO46
+      ignore_strapping_warning: true
+    vsync_pin:
+      number: GPIO3
+      ignore_strapping_warning: true
+    pclk_pin: GPIO7
+    pclk_inverted: true
+    hsync_back_porch: 8
+    hsync_front_porch: 8
+    hsync_pulse_width: 4
+    vsync_back_porch: 8
+    vsync_front_porch: 8
+    vsync_pulse_width: 4
+    data_pins:
+      red: [1, 2, 42, 41, 40]
+      blue: [14, 38, 18, 17, 10]
+      green: [39, 0, 45, 48, 47, 21]

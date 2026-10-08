@@ -1,0 +1,90 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Nakładki pełnoekranowe (dołączane na końcu, żeby były nad belką):
+#  - postęp aktualizacji OTA
+#  - instrukcja konfiguracji WiFi, gdy panel nie ma sieci
+# ─────────────────────────────────────────────────────────────────────────────
+
+lvgl:
+  top_layer:
+    widgets:
+      - obj:
+          id: wifi_overlay
+          hidden: true
+          width: 100%
+          height: 100%
+          bg_color: c_bg
+          bg_opa: COVER
+          border_width: 0
+          radius: 0
+          widgets:
+            - label:
+                align: CENTER
+                y: -90
+                text_font: i48
+                text_color: c_accent
+                text: $ic_wifi_off
+            - label:
+                align: CENTER
+                y: 20
+                width: 700
+                text_align: CENTER
+                text_font: f22
+                text: "Panel nie ma połączenia z WiFi.\n\nPołącz telefon z siecią „${friendly_name} Setup”\n(hasło: sekret ap_password) i otwórz http://192.168.4.1\nalbo użyj instalatora WWW (Improv) przez USB."
+
+      - obj:
+          id: ota_overlay
+          hidden: true
+          width: 100%
+          height: 100%
+          bg_color: c_bg
+          bg_opa: COVER
+          border_width: 0
+          radius: 0
+          widgets:
+            - label:
+                align: CENTER
+                y: -70
+                text_font: i48
+                text_color: c_accent
+                text: $ic_update
+            - label:
+                id: ota_label
+                align: CENTER
+                y: 0
+                text_font: f28
+                text: "Aktualizacja…"
+            - bar:
+                id: ota_bar
+                align: CENTER
+                y: 50
+                width: 420
+                height: 16
+                min_value: 0
+                max_value: 100
+                value: 0
+                indicator:
+                  bg_color: c_accent
+
+script:
+  - id: ota_show
+    then:
+      - script.execute: wake_screen
+      - lvgl.widget.hide: settings_overlay
+      - lvgl.widget.show: ota_overlay
+      - lvgl.label.update:
+          id: ota_label
+          text: "Pobieranie aktualizacji…"
+      - lambda: id(lvgl_main).loop();
+
+interval:
+  - interval: 10s
+    startup_delay: 30s
+    then:
+      - if:
+          condition:
+            wifi.connected:
+          then:
+            - lvgl.widget.hide: wifi_overlay
+          else:
+            - script.execute: wake_screen
+            - lvgl.widget.show: wifi_overlay

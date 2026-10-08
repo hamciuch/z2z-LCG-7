@@ -1,0 +1,46 @@
+# Alert na pulpicie głównym, gdy stan encji jest na liście (np. błąd
+# odkurzacza, auto otwarte, okno otwarte). Znika, gdy stan się zmieni.
+# Dotknięcie przenosi na wskazany pulpit (goto: 0-5).
+# vars: uid, entity, message, icon, states (lista po przecinku), goto
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_v
+    entity_id: ${entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          bool alert = z2z::in_list(x, "${states}");
+          lv_label_set_text(id(${uid}_val), z2z::pl(x).c_str());
+          if (z2z::set_visible(id(${uid}_tile), alert)) id(wake_screen).execute();
+      - script.execute: home_refresh
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: alert_style
+            hidden: true
+            on_click:
+              - script.execute: { id: goto_page, idx: "${goto}" }
+            widgets:
+              - label:
+                  align: LEFT_MID
+                  text_font: i48
+                  text_color: c_err
+                  text: "${icon}"
+              - label:
+                  align: TOP_LEFT
+                  x: 64
+                  width: 270
+                  long_mode: WRAP
+                  text_font: f22
+                  text: "${message}"
+              - label:
+                  id: ${uid}_val
+                  align: BOTTOM_LEFT
+                  x: 64
+                  text_font: f18
+                  text_color: c_muted
+                  text: ""

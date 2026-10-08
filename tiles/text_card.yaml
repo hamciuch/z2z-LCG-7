@@ -1,0 +1,44 @@
+# Karta ze stanem tekstowym (np. zamek auta, ładowanie, lokalizacja).
+# Typowe stany HA są tłumaczone na polski (include/z2z.h -> pl()).
+# vars: uid, page, entity, name, icon
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_v
+    entity_id: ${entity}
+    internal: true
+    on_value:
+      - lvgl.label.update:
+          id: ${uid}_lbl
+          text: !lambda return z2z::pl(x);
+
+lvgl:
+  pages:
+    - id: !extend ${page}
+      widgets:
+        - obj:
+            styles: card_style
+            width: 244
+            height: 128
+            scrollable: false
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text_font: i32
+                  text_color: c_accent
+                  text: "${icon}"
+              - label:
+                  align: TOP_LEFT
+                  x: 42
+                  y: 4
+                  width: 170
+                  long_mode: DOT
+                  text_font: f18
+                  text_color: c_muted
+                  text: "${name}"
+              - label:
+                  id: ${uid}_lbl
+                  align: BOTTOM_LEFT
+                  width: 216
+                  long_mode: DOT
+                  text_font: f28
+                  text: "--"

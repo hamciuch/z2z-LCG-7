@@ -1,0 +1,144 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Baza: WiFi (captive portal / Improv), API HA, OTA (lokalne, z GitHub, z WWW),
+# strona konfiguracyjna (web_server v3), czas, diagnostyka, ustawienia.
+# ─────────────────────────────────────────────────────────────────────────────
+
+logger:
+  level: INFO
+
+# WiFi konfigurujesz bez kompilacji: przez instalator WWW (Improv) albo
+# łącząc się z AP "${friendly_name} Setup" -> http://192.168.4.1
+wifi:
+  ap:
+    ssid: "${friendly_name} Setup"
+    password: !secret ap_password
+  on_connect:
+    - script.execute: status_refresh
+  on_disconnect:
+    - script.execute: status_refresh
+
+captive_portal:
+
+improv_serial:
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+  # panel ma działać dalej, nawet gdy HA jest chwilowo niedostępny
+  reboot_timeout: 0s
+  on_client_connected:
+    - script.execute: status_refresh
+  on_client_disconnected:
+    - script.execute: status_refresh
+  actions:
+    - action: wake
+      then:
+        - script.execute: wake_screen
+    - action: show_page
+      variables:
+        page: int
+      then:
+        - script.execute: wake_screen
+        - script.execute:
+            id: goto_page
+            idx: !lambda return page;
+
+http_request:
+  timeout: 30s
+  buffer_size_rx: 2048
+  verify_ssl: true
+
+ota:
+  - platform: esphome
+    id: ota_local
+    # szyfrowane kluczem API (api_encryption_key)
+    encryption: {}
+    on_begin: &ota_begin
+      - script.execute: ota_show
+    on_progress: &ota_progress
+      - lvgl.bar.update:
+          id: ota_bar
+          value: !lambda return (int) x;
+      - lvgl.label.update:
+          id: ota_label
+          text: !lambda |-
+            static char b[48];
+            snprintf(b, sizeof(b), "Aktualizacja… %.0f%%", x);
+            return b;
+      - lambda: id(lvgl_main).loop();
+    on_end: &ota_end
+      - lvgl.label.update:
+          id: ota_label
+          text: "Gotowe – restart…"
+      - lambda: id(lvgl_main).loop();
+    on_error: &ota_error
+      - lvgl.label.update:
+          id: ota_label
+          text: "Błąd aktualizacji"
+      - delay: 5s
+      - lvgl.widget.hide: ota_overlay
+  - platform: http_request
+    id: ota_http
+    on_begin: *ota_begin
+    on_progress: *ota_progress
+    on_end: *ota_end
+    on_error: *ota_error
+  - platform: web_server
+    id: ota_web
+    on_begin: *ota_begin
+    on_progress: *ota_progress
+    on_end: *ota_end
+    on_error: *ota_error
+
+# Aktualizacja z GitHub Pages (manifest budowany przez GitHub Actions)
+update:
+  - platform: http_request
+    id: fw_update
+    name: "Firmware"
+    source: ${ota_manifest_url}
+    update_interval: 6h
+    on_update_available:
+      - script.execute: status_refresh
+      - if:
+          condition:
+            switch.is_on: auto_update
+          then:
+            - logger.log: "Nowa wersja dostępna – instaluję automatycznie"
+            - update.perform:
+                id: fw_update
+
+# Strona konfiguracyjna: http://<ip-panelu>/
+web_server:
+  port: 80
+  version: 3
+  auth:
+    type: digest
+    username: admin
+    password: !secret web_password
+  sorting_groups:
+    - id: grp_screen
+      name: "Ekran"
+      sorting_weight: 10
+    - id: grp_thresholds
+      name: "Progi alertów"
+      sorting_weight: 20
+    - id: grp_system
+      name: "System / aktualizacje"
+      sorting_weight: 30
+
+time:
+  - platform: homeassistant
+    id: ha_time
+    timezone: Europe/Warsaw
+    on_time_sync:
+      - script.execute: clock_refresh
+    on_time:
+      - seconds: 0
+        minutes: "*"
+        then:
+          - script.execute: clock_refresh
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Warsaw
+    on_time_sync:
+      - script.execute: clock_refresh

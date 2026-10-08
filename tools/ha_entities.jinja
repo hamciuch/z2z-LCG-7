@@ -1,0 +1,48 @@
+{#-
+  Panel Z2Z – eksport encji z Home Assistant.
+  Wklej CAŁOŚĆ w: Narzędzia deweloperskie → Szablon (Developer Tools → Template),
+  skopiuj wynik z prawej strony i wklej go Claude'owi / do issue.
+  Nic nie zmienia w HA – tylko czyta stany.
+-#}
+{%- set ns = namespace(out='') -%}
+{%- macro row(s) -%}
+- {{ s.entity_id }} | {{ s.name }} | {{ s.state }}{{ ' ' ~ s.attributes.unit_of_measurement if s.attributes.unit_of_measurement is defined else '' }}{{ ' | dc=' ~ s.attributes.device_class if s.attributes.device_class is defined else '' }}{{ ' | area=' ~ area_name(s.entity_id) if area_name(s.entity_id) else '' }}
+{% endmacro -%}
+# HA {{ now().strftime('%Y-%m-%d %H:%M') }} · format: entity_id | nazwa | stan | device_class | obszar
+
+## Domownicy (person)
+{% for s in states.person | sort(attribute='entity_id') %}{{ row(s) }}{% endfor %}
+## Światła (light)
+{% for s in states.light | rejectattr('attributes.entity_id', 'defined') | sort(attribute='entity_id') %}{{ row(s) }}{% endfor %}
+## Grupy świateł
+{% for s in states.light | selectattr('attributes.entity_id', 'defined') | sort(attribute='entity_id') %}{{ row(s) }}{% endfor %}
+## Przełączniki / gniazdka (switch)
+{% for s in states.switch | sort(attribute='entity_id') %}{{ row(s) }}{% endfor %}
+## Pomocnicy włącz/wyłącz (input_boolean)
+{% for s in states.input_boolean | sort(attribute='entity_id') %}{{ row(s) }}{% endfor %}
+## Media / TV (media_player)
+{% for s in states.media_player | sort(attribute='entity_id') %}{{ row(s) }}{% endfor %}
+## Ogrzewanie (climate, water_heater)
+{% for s in (states.climate | list) + (states.water_heater | list) %}{{ row(s) }}  temp={{ s.attributes.current_temperature }} set={{ s.attributes.temperature }} action={{ s.attributes.hvac_action }}
+{% endfor %}
+## Setpointy (input_number / number z °C)
+{% for s in (states.input_number | list) + (states.number | list) if s.attributes.unit_of_measurement in ['°C', '°F'] or 'setpoint' in s.entity_id or 'zadana' in s.entity_id %}{{ row(s) }}{% endfor %}
+## Temperatury (sensor °C)
+{% for s in states.sensor | selectattr('attributes.device_class', 'eq', 'temperature') | sort(attribute='entity_id') %}{{ row(s) }}{% endfor %}
+## Deszcz / pogoda
+{% for s in states.weather %}{{ row(s) }}{% endfor %}{% for s in (states.binary_sensor | list) + (states.sensor | list) if ('rain' in s.entity_id or 'deszcz' in s.entity_id or 'opad' in s.entity_id or s.attributes.device_class in ['moisture', 'precipitation', 'precipitation_intensity']) and 'soil' not in s.entity_id and 'gleb' not in s.entity_id %}{{ row(s) }}{% endfor %}
+## Serwer / łączność (connectivity, problem, ping, uptime)
+{% for s in (states.binary_sensor | list) + (states.sensor | list) if s.attributes.device_class in ['connectivity', 'problem', 'running'] or 'ping' in s.entity_id or 'server' in s.entity_id or 'serwer' in s.entity_id or 'nas' in s.entity_id.split('.')[1].split('_') or 'uptime' in s.entity_id %}{{ row(s) }}{% endfor %}
+## Moc (sensor W) – do gniazdek
+{% for s in states.sensor | selectattr('attributes.device_class', 'eq', 'power') | sort(attribute='entity_id') %}{{ row(s) }}{% endfor %}
+## Auto (device_tracker, lock, bateria, zasięg, paliwo)
+{% for s in (states.device_tracker | list) + (states.lock | list) + (states.sensor | list) + (states.binary_sensor | list) if s.domain in ['device_tracker', 'lock'] or 'auto' in s.entity_id or 'car' in s.entity_id.split('.')[1].split('_') or 'samoch' in s.entity_id or 'range' in s.entity_id or 'zasieg' in s.entity_id or 'fuel' in s.entity_id or 'paliw' in s.entity_id or 'charging' in s.entity_id or 'ladowan' in s.entity_id %}{{ row(s) }}{% endfor %}
+## Odkurzacz (vacuum + czujniki)
+{% for s in states.vacuum %}{{ row(s) }}{% endfor %}{% for s in states.sensor if 'vacuum' in s.entity_id or 'odkurz' in s.entity_id or 'roborock' in s.entity_id or 'roomba' in s.entity_id or 'dreame' in s.entity_id or 'xiaomi' in s.entity_id or 'valetudo' in s.entity_id %}{{ row(s) }}{% endfor %}
+## Zmywarka (wszystko z dishwasher / zmywark w nazwie)
+{% for s in states if 'dishwasher' in s.entity_id or 'zmywar' in s.entity_id or 'dishwasher' in (s.name | lower) or 'zmywar' in (s.name | lower) %}{{ row(s) }}{% endfor %}
+## Rośliny (plant + wilgotność gleby)
+{% for s in states.plant %}{{ row(s) }}{% endfor %}{% for s in states.sensor if s.attributes.device_class == 'moisture' or 'soil' in s.entity_id or 'gleb' in s.entity_id or 'plant' in s.entity_id or 'roslin' in s.entity_id or 'moisture' in s.entity_id or 'wilgotnosc_gleby' in s.entity_id %}{{ row(s) }}{% endfor %}
+## Obszary
+{% for a in areas() %}- {{ a }} | {{ area_name(a) }} | encji: {{ area_entities(a) | count }}
+{% endfor %}

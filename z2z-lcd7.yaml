@@ -1,0 +1,41 @@
+# ═════════════════════════════════════════════════════════════════════════════
+#  Z2Z – panel Home Assistant na Waveshare ESP32-S3-Touch-LCD-7
+#  https://github.com/hamciuch/z2z-lcg-7
+#
+#  Twoje encje i kafelki:  config/home.yaml
+#  Sekrety:                secrets.yaml (wzór: secrets.example.yaml)
+#  Aktualizacje OTA:       GitHub Actions → GitHub Pages → manifest.json
+# ═════════════════════════════════════════════════════════════════════════════
+
+substitutions:
+  name: z2z-panel
+  friendly_name: "Panel Z2Z"
+  # Wersję nadaje GitHub Actions (esphome -s fw_version …). Lokalnie: "dev".
+  fw_version: "dev"
+  ota_manifest_url: "https://hamciuch.github.io/z2z-lcg-7/firmware/manifest.json"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  min_version: 2026.7.0
+  project:
+    name: hamciuch.z2z-panel
+    version: ${fw_version}
+  includes:
+    - include/z2z.h
+  on_boot:
+    - priority: -100
+      then:
+        - script.execute: clock_refresh
+        - script.execute: status_refresh
+        - script.execute: home_refresh
+
+packages:
+  hardware: !include hardware/waveshare-esp32-s3-touch-lcd-7.yaml
+  base: !include core/base.yaml
+  theme: !include core/theme.yaml
+  pages: !include core/pages.yaml
+  topbar: !include core/topbar.yaml
+  home: !include config/home.yaml
+  settings: !include core/settings.yaml
+  overlays: !include core/overlays.yaml

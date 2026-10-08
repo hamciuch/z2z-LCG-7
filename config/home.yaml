@@ -1,0 +1,112 @@
+# ═════════════════════════════════════════════════════════════════════════════
+#  KONFIGURACJA PANELU – tylko ten plik edytujesz na co dzień.
+#
+#  Encje wyciągniesz z HA zapytaniem z tools/ha_entities.jinja
+#  (Narzędzia deweloperskie → Szablon). Po zmianie: commit + push →
+#  GitHub Actions zbuduje firmware → panel zaktualizuje się przez OTA.
+#
+#  Ikony: $ic_<nazwa> – lista w core/theme.yaml
+#  Pulpit nieużywany? ustaw hide_page_xxx: "true" (zniknie z przewijania).
+# ═════════════════════════════════════════════════════════════════════════════
+
+substitutions:
+  # ── Belka główna ───────────────────────────────────────────────────────────
+  balcony_temp_entity: sensor.balkon_temperatura
+  # deszcz: binary_sensor (on = pada) albo weather.* (rainy/pouring…)
+  rain_entity: binary_sensor.balkon_deszcz
+  rain_states: "on,rainy,pouring,lightning-rainy,snowy-rainy,hail"
+  # serwer: np. binary_sensor z integracji Ping / Uptime Kuma / NUT
+  server_entity: binary_sensor.serwer_ping
+  server_ok_states: "on,up,running,online,home,connected"
+
+  # ── Ekran ──────────────────────────────────────────────────────────────────
+  screen_timeout_default: "10"   # min, 0 = nigdy (zmienisz też w HA / WWW)
+  home_return_default: "60"      # s – powrót na pulpit główny
+  touch_swap_xy: "false"
+  touch_mirror_x: "false"
+  touch_mirror_y: "false"
+
+  # ── Pulpity ────────────────────────────────────────────────────────────────
+  hide_page_heating: "false"
+  hide_page_car: "false"
+  hide_page_vacuum: "false"
+  hide_page_dishwasher: "false"
+  hide_page_plants: "false"
+
+packages:
+  # ── Domownicy (belka, max 4: slot 0-3) ─────────────────────────────────────
+  person_1: !include { file: ../tiles/person.yaml, vars: { uid: person_1, slot: 0, name: "Osoba 1", entity: person.osoba_1 } }
+  person_2: !include { file: ../tiles/person.yaml, vars: { uid: person_2, slot: 1, name: "Osoba 2", entity: person.osoba_2 } }
+  person_3: !include { file: ../tiles/person.yaml, vars: { uid: person_3, slot: 2, name: "Osoba 3", entity: person.osoba_3 } }
+  person_4: !include { file: ../tiles/person.yaml, vars: { uid: person_4, slot: 3, name: "Osoba 4", entity: person.osoba_4 } }
+
+  # ── Pulpit 1: TERAZ – pokazują się tylko WŁĄCZONE ──────────────────────────
+  # Światła
+  l_salon:   !include { file: ../tiles/active.yaml, vars: { uid: l_salon,   name: "Salon",   icon: $ic_lightbulb, entity: light.salon } }
+  l_kuchnia: !include { file: ../tiles/active.yaml, vars: { uid: l_kuchnia, name: "Kuchnia", icon: $ic_lightbulb, entity: light.kuchnia } }
+  l_sypialnia: !include { file: ../tiles/active.yaml, vars: { uid: l_sypialnia, name: "Sypialnia", icon: $ic_lightbulb, entity: light.sypialnia } }
+  # Telewizor (media_player: widoczny gdy nie jest off/standby)
+  tv:        !include { file: ../tiles/active.yaml, vars: { uid: tv, name: "Telewizor", icon: $ic_television, entity: media_player.telewizor } }
+  # Gniazdka – wg poboru mocy (W). switch_entity: co wyłączyć po dotknięciu
+  ekspres:   !include { file: ../tiles/active_power.yaml, vars: { uid: ekspres, name: "Ekspres", icon: $ic_coffee_maker, entity: sensor.ekspres_moc, threshold: 5, switch_entity: switch.ekspres } }
+  czajnik:   !include { file: ../tiles/active_power.yaml, vars: { uid: czajnik, name: "Czajnik", icon: $ic_kettle, entity: sensor.czajnik_moc, threshold: 50, switch_entity: switch.czajnik } }
+  drukarka:  !include { file: ../tiles/active_power.yaml, vars: { uid: drukarka, name: "Drukarka 3D", icon: $ic_printer_3d, entity: sensor.drukarka_3d_moc, threshold: 15, switch_entity: switch.drukarka_3d } }
+  # …albo gniazdko wg samego stanu włącz/wyłącz:
+  # gniazdko: !include { file: ../tiles/active.yaml, vars: { uid: gniazdko, name: "Gniazdko", icon: $ic_socket, entity: switch.gniazdko } }
+
+  # ── Pulpit 2: OGRZEWANIE ───────────────────────────────────────────────────
+  # encja climate.*:
+  h_salon: !include { file: ../tiles/climate.yaml, vars: { uid: h_salon, name: "Salon", entity: climate.salon } }
+  # albo setpoint jako input_number/number + czujnik temperatury:
+  h_lazienka: !include
+    file: ../tiles/setpoint.yaml
+    vars:
+      uid: h_lazienka
+      name: "Łazienka"
+      setpoint_entity: input_number.lazienka_setpoint
+      temp_entity: sensor.lazienka_temperatura
+      heating_entity: switch.lazienka_grzanie
+      step: 0.5
+      min: 5
+      max: 30
+
+  # ── Pulpit 3: SAMOCHÓD ─────────────────────────────────────────────────────
+  car_bat:   !include { file: ../tiles/value_card.yaml, vars: { uid: car_bat, page: page_car, name: "Bateria", icon: $ic_car_electric, entity: sensor.auto_bateria, unit: "%", decimals: 0 } }
+  car_range: !include { file: ../tiles/value_card.yaml, vars: { uid: car_range, page: page_car, name: "Zasięg", icon: $ic_map_marker, entity: sensor.auto_zasieg, unit: " km", decimals: 0 } }
+  car_lock:  !include { file: ../tiles/text_card.yaml,  vars: { uid: car_lock, page: page_car, name: "Zamek", icon: $ic_lock, entity: lock.auto } }
+  car_low: !include
+    file: ../tiles/alert_threshold.yaml
+    vars:
+      uid: car_low
+      entity: sensor.auto_bateria
+      name: "Bateria auta"
+      message: "Auto: niski poziom baterii"
+      icon: $ic_battery_alert
+      mode: below
+      threshold: 20
+      hysteresis: 2
+      unit: "%"
+      decimals: 0
+      min: 0
+      max: 100
+  car_open: !include { file: ../tiles/alert_state.yaml, vars: { uid: car_open, entity: lock.auto, message: "Auto jest otwarte", icon: $ic_lock_open, states: "unlocked,open", goto: 2 } }
+
+  # ── Pulpit 4: ODKURZACZ ────────────────────────────────────────────────────
+  vac: !include { file: ../tiles/vacuum.yaml, vars: { uid: vac, name: "Odkurzacz", entity: vacuum.odkurzacz, battery_entity: sensor.odkurzacz_bateria } }
+
+  # ── Pulpit 5: ZMYWARKA ─────────────────────────────────────────────────────
+  dish: !include
+    file: ../tiles/dishwasher.yaml
+    vars:
+      uid: dish
+      name: "Zmywarka"
+      state_entity: sensor.zmywarka_stan_pracy
+      running_states: "run,running,delayedstart,delayed_start,pause"
+      finished_states: "finished,end,done"
+      door_entity: binary_sensor.zmywarka_drzwi      # albo sensor.*_door (open/closed)
+      door_open_states: "on,open"
+      remaining_entity: sensor.zmywarka_czas_zakonczenia  # timestamp ISO albo minuty
+
+  # ── Pulpit 6: ROŚLINY (alert "Podlej" poniżej progu) ───────────────────────
+  p_monstera: !include { file: ../tiles/plant.yaml, vars: { uid: p_monstera, name: "Monstera", entity: sensor.monstera_wilgotnosc, threshold: 25 } }
+  p_fikus:    !include { file: ../tiles/plant.yaml, vars: { uid: p_fikus,    name: "Fikus",    entity: sensor.fikus_wilgotnosc,    threshold: 30 } }
