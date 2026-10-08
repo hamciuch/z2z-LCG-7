@@ -50,7 +50,7 @@ Bez sekretów workflow tylko sprawdza, czy firmware się kompiluje, i niczego ni
 ### 2. GitHub Pages (raz)
 `Settings → Pages → Build and deployment → Source: GitHub Actions`.
 Po kolejnym pushu instalator i manifest będą pod
-`https://hamciuch.github.io/z2z-lcg-7/` (repo musi być publiczne albo plan z Pages dla prywatnych).
+`https://hamciuch.github.io/z2z-LCG-7/` (repo musi być publiczne albo plan z Pages dla prywatnych).
 
 ### 3. Encje z Home Assistant
 Otwórz w HA **Narzędzia deweloperskie → Szablon**, wklej całą zawartość
@@ -59,7 +59,7 @@ Na jego podstawie uzupełnij `config/home.yaml` (albo wklej wynik do rozmowy z C
 
 ### 4. Wgranie
 Push na `main` → zakładka **Actions** zbuduje firmware (~5–10 min za pierwszym razem).
-Potem otwórz `https://hamciuch.github.io/z2z-lcg-7/` w Chrome/Edge, podłącz panel USB-C
+Potem otwórz `https://hamciuch.github.io/z2z-LCG-7/` w Chrome/Edge, podłącz panel USB-C
 (gniazdo **USB**) i kliknij **Zainstaluj na panelu**. Instalator od razu zapyta o WiFi.
 
 Bez USB/Chrome: panel bez WiFi wystawia sieć **„Panel Z2Z Setup”** → `http://192.168.4.1`.

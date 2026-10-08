@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ESPHOME_VERSION: "2026.9.1"
+  ESPHOME_VERSION: "2026.9.1"   # trzymaj zgodnie z requirements.txt
   CONFIG: z2z-lcd7.yaml
 
 jobs:
@@ -31,7 +31,7 @@ jobs:
       version: ${{ steps.ver.outputs.version }}
       publish: ${{ steps.sec.outputs.publish }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Wersja firmware
         id: ver
@@ -71,10 +71,11 @@ jobs:
             echo "ap_password: \"$AP_PASSWORD\""
           } > secrets.yaml
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: requirements.txt
 
       - name: Cache PlatformIO / ESPHome
         uses: actions/cache@v4
@@ -88,7 +89,7 @@ jobs:
           restore-keys: esphome-${{ env.ESPHOME_VERSION }}-
 
       - name: Instalacja ESPHome
-        run: pip install "esphome==${ESPHOME_VERSION}"
+        run: pip install -r requirements.txt
 
       - name: Walidacja
         run: esphome -s fw_version "${{ steps.ver.outputs.version }}" config "$CONFIG" > /dev/null

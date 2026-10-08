@@ -1,6 +1,6 @@
 # ═════════════════════════════════════════════════════════════════════════════
 #  Z2Z – panel Home Assistant na Waveshare ESP32-S3-Touch-LCD-7
-#  https://github.com/hamciuch/z2z-lcg-7
+#  https://github.com/hamciuch/z2z-LCG-7
 #
 #  Twoje encje i kafelki:  config/home.yaml
 #  Sekrety:                secrets.yaml (wzór: secrets.example.yaml)
@@ -12,7 +12,7 @@ substitutions:
   friendly_name: "Panel Z2Z"
   # Wersję nadaje GitHub Actions (esphome -s fw_version …). Lokalnie: "dev".
   fw_version: "dev"
-  ota_manifest_url: "https://hamciuch.github.io/z2z-lcg-7/firmware/manifest.json"
+  ota_manifest_url: "https://hamciuch.github.io/z2z-LCG-7/firmware/manifest.json"
 
 esphome:
   name: ${name}
