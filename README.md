@@ -5,19 +5,22 @@ Firmware ESPHome + LVGL dla dotykowego panelu 7" (800×480).
 - **Belka główna** (zawsze na wierzchu): zegar i data, domownicy w domu/poza domem,
   temperatura na balkonie, czy pada deszcz, status serwera, połączenie z HA/WiFi.
   Dotknięcie zegara → panel ustawień (wersja, IP, aktualizacja, restart).
-- **Pulpity przewijane gestem** (animacja przesuwania), kropki nawigacji na dole:
-  1. **Teraz** – tylko to, co *włączone* (światła, TV, gniazdka: ekspres, czajnik, drukarka 3D)
-     oraz **alerty**: przekroczone progi, „Podlej roślinę”, „Wyjmij naczynia ze zmywarki”
-     (znika po otwarciu drzwi), błąd odkurzacza, auto otwarte, niska bateria auta…
-     Gdy wszystko zgaśnie – kafelki znikają. Dotknięcie kafelka = wyłącz.
-  2. **Ogrzewanie** – `climate.*` albo setpoint `input_number/number` + czujnik, przyciski ±
-  3. **Samochód** – karty z wartościami/stanami + alerty
-  4. **Odkurzacz** (Dreame) – kafelki pomieszczeń do zaznaczenia, CleanGenius, tryb, moc ssania,
-     wilgotność mopa, liczba przejść; Sprzątaj wybrane / Pauza / Wznów / Stop / Do stacji /
-     Umyj i susz mop / Mapowanie (z potwierdzeniem). Nigdy nie startuje całego mieszkania.
-  5. **Zmywarka** – stan, pozostały czas, drzwi
+- **Pulpity przewijane gestem** (animacja przesuwania), na dole kropki i nazwa pulpitu.
+  Każdy pulpit mieści się w całości na ekranie (siatka 780×380 px):
+  0. **Teraz** – tylko to, co *włączone* (światła, TV, PS5, ekspres, czajnik, okap), drukarka 3D
+     tylko w trakcie druku (postęp i godzina końca), pralka/suszarka gdy pracują,
+     odkurzacz gdy sprząta oraz **alerty** (podlej roślinę, wyjmij naczynia / pranie, sól,
+     nabłyszczacz, auto otwarte, mało paliwa, błąd odkurzacza). Dotknięcie kafelka = wyłącz.
+  1. **Światła** – wszystkie światła, dotknięcie = przełącz
+  2. **Ogrzewanie** – temperatura z czujnika Zigbee w pokoju + głowica, zadana ±
+  3. **Samochód** – paliwo, zasięgi, ładowanie, zamek, temperatura
+  4. **Odkurzacz** (Dreame) – kafelki pomieszczeń, Sprzątaj wybrane / Pauza / Wznów / Stop /
+     Do stacji; okno opcji: CleanGenius, tryb, moc, mop, przejścia, mycie/suszenie mopa, mapowanie.
+     Nigdy nie startuje całego mieszkania.
+  5. **AGD** – zmywarka (stan, faza, pozostały czas, drzwi), pralka i suszarka wg poboru mocy
   6. **Rośliny** – wilgotność gleby z paskiem i progiem
-- **Wygaszanie ekranu** i **powrót na pulpit główny** po bezczynności; nowy alert budzi ekran.
+- **Wygaszanie ekranu** po 10 min bez dotyku i bez ruchu (czujniki ruchu Satel budzą ekran),
+  powrót na pulpit główny po bezczynności; nowy alert też budzi ekran.
 - **OTA z GitHub**: GitHub Actions buduje firmware i publikuje go na GitHub Pages
   (`manifest.json`). Panel sam sprawdza aktualizacje (encja *Firmware* w HA).
 - **Instalator w przeglądarce** (ESP Web Tools + Improv WiFi) – pierwsze wgranie bez instalowania niczego.
@@ -33,7 +36,7 @@ Firmware ESPHome + LVGL dla dotykowego panelu 7" (800×480).
 | `core/*.yaml` | Belka, pulpity, motyw, ustawienia, OTA, nakładki |
 | `hardware/…yaml` | Piny wyświetlacza, dotyk GT911, ekspander CH422G |
 | `tools/ha_entities.jinja` | Zapytanie do HA wyciągające potrzebne encje |
-| `tools/ha_vacuum.jinja` | Zapytanie: pomieszczenia (ID segmentów) i opcje odkurzacza Dreame |
+| `tools/ha_details.jinja` | Zapytanie: pomieszczenia odkurzacza, czujniki ruchu, drukarka Bambu |
 | `tools/ha_export.py` | Alternatywa: pełny eksport przez REST API |
 | `.github/workflows/build.yml` | Build → GitHub Pages (OTA + instalator) |
 
@@ -121,7 +124,11 @@ packages:
 | `plant.yaml` | Rośliny + alert | wilgotność < progu |
 | `dishwasher.yaml` | Zmywarka + alert | `done_entity` → koniec programu, do otwarcia drzwi |
 | `vacuum.yaml` → `vacuum_room.yaml` ×N → `vacuum_controls.yaml` | Odkurzacz (Dreame) | status, kafelki pomieszczeń, opcje, sterowanie, mapowanie; alert przy błędzie |
-| `climate.yaml` / `setpoint.yaml` | Ogrzewanie | zawsze |
+| `climate.yaml` | Ogrzewanie | zawsze (głowica + czujnik w pokoju) |
+| `light_toggle.yaml` | Światła | zawsze, dotknięcie = przełącz |
+| `appliance_power.yaml` | AGD + Teraz | pracuje wg mocy; alert po zakończeniu |
+| `printer.yaml` | Teraz | tylko podczas druku |
+| `motion_wake.yaml` | – | ruch budzi ekran |
 | `value_card.yaml` / `text_card.yaml` | dowolny pulpit (`page:`) | zawsze |
 | `person.yaml` | belka (`slot` 0–3) | zawsze |
 

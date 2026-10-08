@@ -27,20 +27,20 @@ lvgl:
             widgets:
               - label:
                   align: LEFT_MID
-                  text_font: i48
+                  text_font: i32
                   text_color: c_err
                   text: "${icon}"
               - label:
                   align: TOP_LEFT
-                  x: 64
-                  width: 270
+                  x: 58
+                  width: 222
                   long_mode: WRAP
-                  text_font: f22
+                  text_font: f18
                   text: "${message}"
               - label:
                   id: ${uid}_val
                   align: BOTTOM_LEFT
-                  x: 64
+                  x: 58
                   text_font: f18
                   text_color: c_muted
                   text: ""

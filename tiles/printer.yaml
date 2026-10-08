@@ -1,0 +1,114 @@
+# Drukarka 3D Bambu Lab (integracja ha-bambulab) – kafelek na "Teraz" TYLKO podczas druku:
+# nazwa zadania, postęp z paskiem, przewidywana godzina końca i pozostały czas.
+# Gdy nie drukuje – kafelka nie ma.
+# vars: uid, name, status_entity, progress_entity, remaining_entity (min), task_entity,
+#       printing_states (lista po przecinku)
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_st
+    entity_id: ${status_entity}
+    internal: true
+    on_value:
+      - script.execute: ${uid}_refresh
+  - platform: homeassistant
+    id: ${uid}_task
+    entity_id: ${task_entity}
+    internal: true
+    on_value:
+      - lvgl.label.update:
+          id: ${uid}_task_lbl
+          text: !lambda |-
+            return (x == "unknown" || x == "unavailable") ? std::string("") : x;
+
+sensor:
+  - platform: homeassistant
+    id: ${uid}_prog
+    entity_id: ${progress_entity}
+    internal: true
+    on_value:
+      - script.execute: ${uid}_refresh
+  - platform: homeassistant
+    id: ${uid}_rem
+    entity_id: ${remaining_entity}
+    internal: true
+    on_value:
+      - script.execute: ${uid}_refresh
+
+script:
+  - id: ${uid}_refresh
+    mode: restart
+    then:
+      - lambda: |-
+          bool printing = z2z::in_list(id(${uid}_st).state, "${printing_states}");
+          float p = id(${uid}_prog).state;
+          float rem = id(${uid}_rem).state;   // minuty
+          lv_bar_set_value(id(${uid}_bar), isnan(p) ? 0 : (int) p, LV_ANIM_ON);
+          char b[64] = "";
+          auto now = id(ha_time).now();
+          if (!isnan(rem) && rem >= 0 && now.is_valid()) {
+            int end = now.hour * 60 + now.minute + (int) rem;
+            int h = (end / 60) % 24, m = end % 60;
+            int rh = (int) rem / 60, rm = (int) rem % 60;
+            if (rh > 0) snprintf(b, sizeof(b), "%.0f%% · koniec %02d:%02d (%d h %02d min)", isnan(p) ? 0.f : p, h, m, rh, rm);
+            else snprintf(b, sizeof(b), "%.0f%% · koniec %02d:%02d (%d min)", isnan(p) ? 0.f : p, h, m, rm);
+          } else if (!isnan(p)) {
+            snprintf(b, sizeof(b), "%.0f%%", p);
+          }
+          lv_label_set_text(id(${uid}_info), b);
+          z2z::set_visible(id(${uid}_tile), printing);
+      - script.execute: home_refresh
+
+interval:
+  - interval: 60s
+    then:
+      - script.execute: ${uid}_refresh
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - obj:
+            id: ${uid}_tile
+            styles: tile_style
+            width: 306
+            hidden: true
+            scrollable: false
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text_font: i32
+                  text_color: c_accent
+                  text: $ic_printer_3d
+              - label:
+                  align: TOP_LEFT
+                  x: 42
+                  text_font: f18
+                  text: "${name}"
+              - label:
+                  id: ${uid}_task_lbl
+                  align: TOP_LEFT
+                  x: 42
+                  y: 22
+                  width: 236
+                  long_mode: DOT
+                  text_font: f14
+                  text_color: c_muted
+                  text: ""
+              - label:
+                  id: ${uid}_info
+                  align: BOTTOM_LEFT
+                  y: -16
+                  width: 280
+                  long_mode: DOT
+                  text_font: f18
+                  text: ""
+              - bar:
+                  id: ${uid}_bar
+                  align: BOTTOM_MID
+                  width: 100%
+                  height: 8
+                  min_value: 0
+                  max_value: 100
+                  value: 0
+                  indicator:
+                    bg_color: c_accent

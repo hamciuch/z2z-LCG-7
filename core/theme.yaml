@@ -148,7 +148,7 @@ color:
     hex: "29B6F6"
 
 lvgl:
-  default_font: f22
+  default_font: f18
   bottom_layer:
     bg_color: c_bg
     bg_opa: COVER
@@ -168,48 +168,47 @@ lvgl:
       indicator:
         radius: 6
   style_definitions:
+    # Obszar roboczy pulpitu: 800×480 – belka 60 px – pasek kropek 30 px
+    # = 780 × 382 px. Siatki: 5 kol. = 148 px, 4 kol. = 187 px, 3 kol. = 253 px,
+    # 2 kol. = 385 px (odstęp 10 px). Wszystko ma się mieścić bez przewijania.
     - id: page_style
       bg_color: c_bg
       bg_opa: COVER
       border_width: 0
       radius: 0
-      pad_top: 72
-      pad_bottom: 40
-      pad_left: 16
-      pad_right: 16
-    - id: title_style
-      text_font: f28
-      text_color: c_muted
-      width: 100%
-    - id: tile_style            # aktywne urządzenie na pulpicie głównym
-      width: 176
-      height: 128
-      radius: 20
+      pad_top: 68
+      pad_bottom: 32
+      pad_left: 10
+      pad_right: 10
+    - id: tile_style            # aktywne urządzenie na pulpicie "Teraz" (5 kolumn)
+      width: 148
+      height: 112
+      radius: 16
       bg_color: 0x3A2E10
       bg_opa: COVER
       border_width: 2
       border_color: c_accent
-      pad_all: 12
+      pad_all: 10
       shadow_width: 0
-    - id: alert_style           # alert (próg przekroczony / zmywarka / błąd)
-      width: 364
-      height: 128
-      radius: 20
+    - id: alert_style           # alert – szerokość 2 kafelków
+      width: 306
+      height: 112
+      radius: 16
       bg_color: 0x3A1A10
       bg_opa: COVER
       border_width: 2
       border_color: c_warn
-      pad_all: 12
+      pad_all: 10
       shadow_width: 0
     - id: card_style            # karta na pozostałych pulpitach
-      radius: 20
+      radius: 16
       bg_color: c_card
       bg_opa: COVER
       border_width: 0
-      pad_all: 14
+      pad_all: 10
       shadow_width: 0
     - id: empty_style
-      text_font: f28
+      text_font: f22
       text_color: c_muted
       width: 100%
       text_align: center

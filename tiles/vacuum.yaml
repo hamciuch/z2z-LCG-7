@@ -73,57 +73,55 @@ lvgl:
         - obj:
             styles: card_style
             width: 100%
-            height: 96
+            height: 60
+            pad_all: 6
             scrollable: false
             widgets:
               - label:
                   id: vac_icon
                   align: LEFT_MID
-                  text_font: i48
+                  x: 4
+                  text_font: i32
                   text_color: c_muted
                   text: $ic_robot_vacuum
               - label:
                   id: vac_state_lbl
                   align: TOP_LEFT
-                  x: 70
-                  text_font: f28
+                  x: 48
+                  text_font: f18
                   text: "--"
               - label:
                   id: vac_status_lbl
                   align: BOTTOM_LEFT
-                  x: 70
-                  text_font: f18
+                  x: 48
+                  text_font: f14
                   text_color: c_muted
                   text: ""
               - label:
                   id: vac_room_lbl
-                  align: TOP_MID
-                  x: 90
-                  text_font: f22
+                  align: TOP_LEFT
+                  x: 330
+                  text_font: f18
                   text_color: c_accent
                   text: ""
               - label:
                   id: vac_area_lbl
-                  align: BOTTOM_MID
-                  x: 90
-                  text_font: f18
+                  align: BOTTOM_LEFT
+                  x: 330
+                  text_font: f14
                   text_color: c_muted
                   text: ""
               - label:
                   align: RIGHT_MID
-                  x: -76
-                  text_font: i32
+                  x: -62
+                  text_font: i24
                   text_color: c_ok
                   text: $ic_battery
               - label:
                   id: vac_bat_lbl
                   align: RIGHT_MID
-                  text_font: f28
+                  text_font: f22
                   text: "--%"
-        - label:
-            styles: title_style
-            text_font: f22
-            text: "Pomieszczenia – zaznacz, które sprzątać"
 
     - id: !extend page_home
       widgets:
@@ -132,7 +130,7 @@ lvgl:
             styles: tile_style
             hidden: true
             on_click:
-              - script.execute: { id: goto_page, idx: 3 }
+              - script.execute: { id: goto_page, idx: 4 }
             widgets:
               - label:
                   align: TOP_LEFT
@@ -159,17 +157,17 @@ lvgl:
             styles: alert_style
             hidden: true
             on_click:
-              - script.execute: { id: goto_page, idx: 3 }
+              - script.execute: { id: goto_page, idx: 4 }
             widgets:
               - label:
                   align: LEFT_MID
-                  text_font: i48
+                  text_font: i32
                   text_color: c_err
                   text: $ic_robot_vacuum
               - label:
                   align: TOP_LEFT
-                  x: 64
-                  width: 270
+                  x: 58
+                  width: 222
                   long_mode: WRAP
-                  text_font: f22
+                  text_font: f18
                   text: "${name}: błąd – sprawdź odkurzacz"

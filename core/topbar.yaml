@@ -84,31 +84,47 @@ lvgl:
                 text_color: c_muted
                 text: $ic_home_assistant
 
-      # kropki nawigacji (dotknięcie = przejście do pulpitu)
+      # pasek na dole: kropki nawigacji (dotknięcie = przejście) + nazwa pulpitu
       - obj:
           id: dots
           align: BOTTOM_MID
-          y: -8
+          y: -4
           width: SIZE_CONTENT
-          height: 22
+          height: 24
           bg_opa: TRANSP
           border_width: 0
-          pad_all: 4
+          pad_all: 2
           scrollable: false
           layout:
             type: flex
             flex_flow: ROW
-            pad_column: 12
             flex_align_cross: CENTER
+            pad_column: 12
           widgets:
             - obj: { id: dot0, width: 12, height: 12, radius: 6, border_width: 0, bg_color: c_accent, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 0 } }] }
-            - obj: { id: dot1, hidden: "${hide_page_heating}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 1 } }] }
-            - obj: { id: dot2, hidden: "${hide_page_car}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 2 } }] }
-            - obj: { id: dot3, hidden: "${hide_page_vacuum}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 3 } }] }
-            - obj: { id: dot4, hidden: "${hide_page_dishwasher}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 4 } }] }
-            - obj: { id: dot5, hidden: "${hide_page_plants}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 5 } }] }
+            - obj: { id: dot1, hidden: "${hide_page_lights}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 1 } }] }
+            - obj: { id: dot2, hidden: "${hide_page_heating}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 2 } }] }
+            - obj: { id: dot3, hidden: "${hide_page_car}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 3 } }] }
+            - obj: { id: dot4, hidden: "${hide_page_vacuum}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 4 } }] }
+            - obj: { id: dot5, hidden: "${hide_page_appliances}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 5 } }] }
+            - obj: { id: dot6, hidden: "${hide_page_plants}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 6 } }] }
+            - label: { id: page_name, text_font: f14, text_color: c_muted, text: "Teraz" }
 
 sensor:
+  # Serwer: działa, gdy pobór mocy z gniazdka > server_power_min [W]
+  - platform: homeassistant
+    id: ha_server
+    entity_id: ${server_power_entity}
+    on_value:
+      - lambda: |-
+          bool ok = !isnan(x) && x > ${server_power_min};
+          lv_label_set_text(id(ico_server), ok ? "${ic_server}" : "${ic_server_off}");
+          z2z::set_text_color(id(ico_server), ok ? z2z::C_OK : z2z::C_ERR);
+      - if:
+          condition:
+            lambda: return isnan(x) || x <= ${server_power_min};
+          then:
+            - script.execute: wake_screen
   - platform: homeassistant
     id: ha_balcony_temp
     entity_id: ${balcony_temp_entity}
@@ -126,20 +142,6 @@ text_sensor:
           bool rain = z2z::in_list(x, "${rain_states}");
           lv_label_set_text(id(ico_rain), rain ? "${ic_umbrella}" : "${ic_cloud}");
           z2z::set_text_color(id(ico_rain), rain ? 0x29B6F6 : z2z::C_MUTED);
-  - platform: homeassistant
-    id: ha_server
-    entity_id: ${server_entity}
-    on_value:
-      - lambda: |-
-          bool ok = z2z::in_list(x, "${server_ok_states}");
-          lv_label_set_text(id(ico_server), ok ? "${ic_server}" : "${ic_server_off}");
-          z2z::set_text_color(id(ico_server), ok ? z2z::C_OK : z2z::C_ERR);
-      - if:
-          condition:
-            lambda: return !z2z::in_list(x, "${server_ok_states}");
-          then:
-            - script.execute: wake_screen
-
 script:
   - id: clock_refresh
     then:

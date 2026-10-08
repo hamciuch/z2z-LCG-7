@@ -1,0 +1,170 @@
+# Pralka / suszarka wg poboru mocy (gniazdko z pomiarem, np. Matter IKEA Grillplats).
+#  - pracuje:   moc > threshold [W] → karta "Pracuje · 450 W · od 1 h 05 min" + kafelek na "Teraz"
+#  - skończyła: moc ≤ threshold przez finish_min minut → alert na "Teraz" ("wyjmij pranie"),
+#               znika po dotknięciu albo przy następnym uruchomieniu
+# Krótkie spadki mocy w trakcie (namaczanie, pauzy) nie kończą cyklu, jeśli są krótsze niż finish_min.
+# vars: uid, name, icon, entity, threshold, finish_min, finish_message
+globals:
+  - id: ${uid}_running
+    type: bool
+    restore_value: true
+    initial_value: "false"
+  - id: ${uid}_finished
+    type: bool
+    restore_value: true
+    initial_value: "false"
+  - id: ${uid}_last_above
+    type: uint32_t
+    initial_value: "0"
+  - id: ${uid}_start
+    type: uint32_t
+    initial_value: "0"
+
+sensor:
+  - platform: homeassistant
+    id: ${uid}_p
+    entity_id: ${entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x) && x > ${threshold}) {
+            if (!id(${uid}_running)) id(${uid}_start) = millis();
+            id(${uid}_running) = true;
+            id(${uid}_finished) = false;
+            id(${uid}_last_above) = millis();
+          }
+      - script.execute: ${uid}_refresh
+
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          if (id(${uid}_running)) {
+            // po restarcie panelu liczymy od teraz
+            if (id(${uid}_last_above) == 0) id(${uid}_last_above) = millis();
+            if (id(${uid}_start) == 0) id(${uid}_start) = millis();
+            if (millis() - id(${uid}_last_above) > (uint32_t) ${finish_min} * 60000UL) {
+              id(${uid}_running) = false;
+              id(${uid}_finished) = true;
+            }
+          }
+      - script.execute: ${uid}_refresh
+
+script:
+  - id: ${uid}_refresh
+    mode: restart
+    then:
+      - lambda: |-
+          bool run = id(${uid}_running), fin = id(${uid}_finished);
+          float p = id(${uid}_p).state;
+          char b[64];
+          if (run) {
+            uint32_t m = (millis() - id(${uid}_start)) / 60000;
+            if (m >= 60) snprintf(b, sizeof(b), "%.0f W · od %u h %02u min", isnan(p) ? 0.f : p, m / 60, m % 60);
+            else snprintf(b, sizeof(b), "%.0f W · od %u min", isnan(p) ? 0.f : p, m);
+          } else {
+            snprintf(b, sizeof(b), "%s", isnan(p) ? "brak danych" : "");
+          }
+          lv_label_set_text(id(${uid}_state), run ? "Pracuje" : (fin ? "Skończyła" : "Nie pracuje"));
+          lv_label_set_text(id(${uid}_info), b);
+          lv_label_set_text(id(${uid}_tsub), b);
+          z2z::set_text_color(id(${uid}_icon), run ? z2z::C_ACCENT : (fin ? z2z::C_OK : z2z::C_MUTED));
+          z2z::set_visible(id(${uid}_tile), run);
+          if (z2z::set_visible(id(${uid}_alert), fin)) id(wake_screen).execute();
+      - script.execute: home_refresh
+
+lvgl:
+  pages:
+    - id: !extend page_appliances
+      widgets:
+        - obj:
+            styles: card_style
+            width: 385
+            height: 150
+            scrollable: false
+            widgets:
+              - label:
+                  id: ${uid}_icon
+                  align: LEFT_MID
+                  text_font: i48
+                  text_color: c_muted
+                  text: "${icon}"
+              - label:
+                  align: TOP_LEFT
+                  x: 66
+                  y: 4
+                  text_font: f18
+                  text_color: c_muted
+                  text: "${name}"
+              - label:
+                  id: ${uid}_state
+                  align: LEFT_MID
+                  x: 66
+                  y: 4
+                  text_font: f28
+                  text: "--"
+              - label:
+                  id: ${uid}_info
+                  align: BOTTOM_LEFT
+                  x: 66
+                  width: 290
+                  long_mode: DOT
+                  text_font: f14
+                  text_color: c_muted
+                  text: ""
+
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: tile_style
+            hidden: true
+            on_click:
+              - script.execute: { id: goto_page, idx: 5 }
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text_font: i32
+                  text_color: c_accent
+                  text: "${icon}"
+              - label:
+                  align: BOTTOM_LEFT
+                  y: -18
+                  width: 126
+                  long_mode: DOT
+                  text_font: f18
+                  text: "${name}"
+              - label:
+                  id: ${uid}_tsub
+                  align: BOTTOM_LEFT
+                  width: 126
+                  long_mode: DOT
+                  text_font: f14
+                  text_color: c_muted
+                  text: ""
+        - button:
+            id: ${uid}_alert
+            styles: alert_style
+            hidden: true
+            on_click:
+              - lambda: id(${uid}_finished) = false;
+              - script.execute: ${uid}_refresh
+            widgets:
+              - label:
+                  align: LEFT_MID
+                  text_font: i32
+                  text_color: c_ok
+                  text: "${icon}"
+              - label:
+                  align: TOP_LEFT
+                  x: 58
+                  width: 222
+                  long_mode: WRAP
+                  text_font: f18
+                  text: "${finish_message}"
+              - label:
+                  align: BOTTOM_LEFT
+                  x: 58
+                  text_font: f14
+                  text_color: c_muted
+                  text: "dotknij, aby ukryć"

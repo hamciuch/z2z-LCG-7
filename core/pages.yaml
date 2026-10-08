@@ -1,8 +1,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Pulpity (strony LVGL), przewijanie gestem z animacją, wygaszanie ekranu.
-#   0 Teraz (dynamiczny) · 1 Ogrzewanie · 2 Samochód · 3 Odkurzacz
-#   4 Zmywarka · 5 Rośliny
+#   0 Teraz · 1 Światła · 2 Ogrzewanie · 3 Samochód · 4 Odkurzacz · 5 AGD · 6 Rośliny
 # Kafelki z tiles/*.yaml dopisują się do stron przez `!extend page_xxx`.
+# Numery pulpitów używa "goto" w alertach i akcja API show_page.
 # ─────────────────────────────────────────────────────────────────────────────
 
 lvgl:
@@ -27,7 +27,7 @@ lvgl:
                   id: page_home
                   animation: FADE_IN
                   time: 300ms
-    # Wygaszenie ekranu
+    # Wygaszenie ekranu (brak dotyku i brak ruchu z czujników)
     - timeout: !lambda |-
         float m = id(screen_timeout_min).state;
         return (uint32_t) ((isnan(m) || m <= 0) ? 86400000 : m * 60000);
@@ -46,14 +46,14 @@ lvgl:
     - id: page_home
       styles: page_style
       scroll_dir: VER
-      layout:
+      layout: &flex
         type: flex
         flex_flow: ROW_WRAP
         flex_align_main: START
         flex_align_cross: START
         flex_align_track: START
-        pad_row: 14
-        pad_column: 14
+        pad_row: 10
+        pad_column: 10
       on_swipe_left: &swipe_left
         - lambda: lv_indev_wait_release(lv_indev_active());
         - lvgl.page.next:
@@ -72,24 +72,25 @@ lvgl:
             styles: empty_style
             text: "Wszystko wyłączone, nic nie wymaga uwagi"
 
-    - id: page_heating
-      skip: ${hide_page_heating}
+    - id: page_lights
+      skip: ${hide_page_lights}
       styles: page_style
       scroll_dir: VER
-      layout: &flex
-        type: flex
-        flex_flow: ROW_WRAP
-        flex_align_main: START
-        flex_align_cross: START
-        flex_align_track: START
-        pad_row: 14
-        pad_column: 14
+      layout: *flex
       on_swipe_left: *swipe_left
       on_swipe_right: *swipe_right
       on_load:
         - script.execute: { id: dots_set, idx: 1 }
-      widgets:
-        - label: { styles: title_style, text: "Ogrzewanie" }
+
+    - id: page_heating
+      skip: ${hide_page_heating}
+      styles: page_style
+      scroll_dir: VER
+      layout: *flex
+      on_swipe_left: *swipe_left
+      on_swipe_right: *swipe_right
+      on_load:
+        - script.execute: { id: dots_set, idx: 2 }
 
     - id: page_car
       skip: ${hide_page_car}
@@ -99,9 +100,7 @@ lvgl:
       on_swipe_left: *swipe_left
       on_swipe_right: *swipe_right
       on_load:
-        - script.execute: { id: dots_set, idx: 2 }
-      widgets:
-        - label: { styles: title_style, text: "Samochód" }
+        - script.execute: { id: dots_set, idx: 3 }
 
     - id: page_vacuum
       skip: ${hide_page_vacuum}
@@ -111,21 +110,17 @@ lvgl:
       on_swipe_left: *swipe_left
       on_swipe_right: *swipe_right
       on_load:
-        - script.execute: { id: dots_set, idx: 3 }
-      widgets:
-        - label: { styles: title_style, text: "Odkurzacz" }
+        - script.execute: { id: dots_set, idx: 4 }
 
-    - id: page_dishwasher
-      skip: ${hide_page_dishwasher}
+    - id: page_appliances
+      skip: ${hide_page_appliances}
       styles: page_style
       scroll_dir: VER
       layout: *flex
       on_swipe_left: *swipe_left
       on_swipe_right: *swipe_right
       on_load:
-        - script.execute: { id: dots_set, idx: 4 }
-      widgets:
-        - label: { styles: title_style, text: "Zmywarka" }
+        - script.execute: { id: dots_set, idx: 5 }
 
     - id: page_plants
       skip: ${hide_page_plants}
@@ -135,9 +130,7 @@ lvgl:
       on_swipe_left: *swipe_left
       on_swipe_right: *swipe_right
       on_load:
-        - script.execute: { id: dots_set, idx: 5 }
-      widgets:
-        - label: { styles: title_style, text: "Rośliny" }
+        - script.execute: { id: dots_set, idx: 6 }
 
 script:
   # Pokazuje / chowa napis "wszystko wyłączone" na pulpicie głównym
@@ -150,10 +143,11 @@ script:
           int n = z2z::visible_children(page, id(home_empty), nullptr);
           z2z::show(id(home_empty), n == 0);
 
-  # Wybudza ekran (np. gdy pojawia się nowy alert)
+  # Wybudza ekran i zeruje licznik bezczynności (nowy alert, ruch z czujnika)
   - id: wake_screen
     mode: restart
     then:
+      - lambda: lv_display_trigger_activity(id(lvgl_main)->get_disp());
       - if:
           condition:
             lvgl.is_paused:
@@ -162,36 +156,22 @@ script:
             - lvgl.widget.redraw:
       - light.turn_on: backlight
 
-  # Kropki nawigacji
+  # Kropki nawigacji + nazwa pulpitu
   - id: dots_set
     parameters:
       idx: int
     then:
       - lambda: |-
-          lv_obj_t *d[] = {id(dot0), id(dot1), id(dot2), id(dot3), id(dot4), id(dot5)};
-          for (int i = 0; i < 6; i++)
+          lv_obj_t *d[] = {id(dot0), id(dot1), id(dot2), id(dot3), id(dot4), id(dot5), id(dot6)};
+          static const char *const N[] = {"Teraz", "Światła", "Ogrzewanie", "Samochód", "Odkurzacz", "AGD", "Rośliny"};
+          for (int i = 0; i < 7; i++)
             z2z::set_bg(d[i], i == idx ? z2z::C_ACCENT : z2z::C_DOT_OFF);
+          if (idx >= 0 && idx < 7) lv_label_set_text(id(page_name), N[idx]);
 
-  # Przejście do strony po numerze (akcja API "show_page")
+  # Przejście do pulpitu po numerze (alerty, akcja API "show_page")
   - id: goto_page
     parameters:
       idx: int
     then:
-      - if:
-          condition: { lambda: return idx == 0; }
-          then: [{ lvgl.page.show: { id: page_home, animation: FADE_IN, time: 200ms } }]
-      - if:
-          condition: { lambda: return idx == 1; }
-          then: [{ lvgl.page.show: { id: page_heating, animation: FADE_IN, time: 200ms } }]
-      - if:
-          condition: { lambda: return idx == 2; }
-          then: [{ lvgl.page.show: { id: page_car, animation: FADE_IN, time: 200ms } }]
-      - if:
-          condition: { lambda: return idx == 3; }
-          then: [{ lvgl.page.show: { id: page_vacuum, animation: FADE_IN, time: 200ms } }]
-      - if:
-          condition: { lambda: return idx == 4; }
-          then: [{ lvgl.page.show: { id: page_dishwasher, animation: FADE_IN, time: 200ms } }]
-      - if:
-          condition: { lambda: return idx == 5; }
-          then: [{ lvgl.page.show: { id: page_plants, animation: FADE_IN, time: 200ms } }]
+      - lambda: |-
+          if (idx >= 0 && idx < 7) id(lvgl_main)->show_page(idx, LV_SCREEN_LOAD_ANIM_FADE_IN, 200);

@@ -1,12 +1,22 @@
-# Ogrzewanie – encja climate.* : temperatura bieżąca, setpoint, +/- (0.5°).
-# Zmiana wysyłana do HA po 1,5 s od ostatniego dotknięcia.
-# vars: uid, entity, name
+# Ogrzewanie – encja climate.* (głowica) + czujnik temperatury w pokoju (Zigbee).
+# Duża liczba = temperatura z czujnika w pokoju, mała = to, co mierzy głowica.
+# Zadana: +/- (krok 0,5°), wysyłana do HA po 1,5 s od ostatniego dotknięcia.
+# Karta 385×184 – 4 pokoje mieszczą się 2×2 na ekranie.
+# vars: uid, entity, name, room_temp_entity
 globals:
   - id: ${uid}_sp
     type: float
     initial_value: "NAN"
 
 sensor:
+  - platform: homeassistant
+    id: ${uid}_room
+    entity_id: ${room_temp_entity}
+    internal: true
+    on_value:
+      - lvgl.label.update:
+          id: ${uid}_room_lbl
+          text: !lambda return z2z::fmt(x, 1, "°");
   - platform: homeassistant
     id: ${uid}_cur
     entity_id: ${entity}
@@ -15,7 +25,8 @@ sensor:
     on_value:
       - lvgl.label.update:
           id: ${uid}_cur_lbl
-          text: !lambda return z2z::fmt(x, 1, "°");
+          text: !lambda |-
+            return isnan(x) ? std::string("") : "głowica " + z2z::fmt(x, 1, "°");
   - platform: homeassistant
     id: ${uid}_set
     entity_id: ${entity}
@@ -37,9 +48,8 @@ text_sensor:
     on_value:
       - lambda: |-
           bool heat = x == "heating" || x == "preheating";
-          bool cool = x == "cooling";
-          z2z::set_text_color(id(${uid}_icon), heat ? z2z::C_HEAT : (cool ? z2z::C_COOL : z2z::C_MUTED));
-          lv_label_set_text(id(${uid}_act_lbl), z2z::pl(x).c_str());
+          z2z::set_text_color(id(${uid}_icon), heat ? z2z::C_HEAT : z2z::C_MUTED);
+          lv_label_set_text(id(${uid}_act_lbl), heat ? "Grzeje" : "");
 
 script:
   - id: ${uid}_adj
@@ -73,67 +83,72 @@ lvgl:
       widgets:
         - obj:
             styles: card_style
-            width: 372
-            height: 170
+            width: 385
+            height: 184
             scrollable: false
             widgets:
               - label:
                   id: ${uid}_icon
                   align: TOP_LEFT
-                  text_font: i32
+                  text_font: i24
                   text_color: c_muted
                   text: $ic_radiator
               - label:
                   align: TOP_LEFT
-                  x: 42
-                  y: 4
-                  width: 210
+                  x: 32
+                  y: 2
+                  width: 160
                   long_mode: DOT
-                  text_font: f22
+                  text_font: f18
                   text: "${name}"
               - label:
                   id: ${uid}_act_lbl
-                  align: TOP_RIGHT
-                  y: 6
+                  align: TOP_LEFT
+                  x: 32
+                  y: 26
+                  text_font: f14
+                  text_color: c_heat
+                  text: ""
+              - label:
+                  id: ${uid}_room_lbl
+                  align: LEFT_MID
+                  y: 12
+                  text_font: f64
+                  text: "--°"
+              - label:
+                  id: ${uid}_cur_lbl
+                  align: BOTTOM_LEFT
                   text_font: f14
                   text_color: c_muted
                   text: ""
               - label:
-                  id: ${uid}_cur_lbl
-                  align: LEFT_MID
-                  y: 16
-                  text_font: f64
-                  text: "--°"
-              - label:
-                  align: BOTTOM_RIGHT
-                  x: -64
-                  y: -70
+                  align: TOP_RIGHT
+                  x: -62
+                  y: 4
                   text_font: f14
                   text_color: c_muted
                   text: "zadana"
               - label:
                   id: ${uid}_sp_lbl
-                  align: BOTTOM_RIGHT
-                  x: -60
-                  y: -6
-                  text_font: f40
+                  align: RIGHT_MID
+                  x: -58
+                  text_font: f28
                   text_color: c_accent
                   text: "--°"
               - button:
                   align: TOP_RIGHT
-                  y: 30
-                  width: 52
-                  height: 52
-                  radius: 26
+                  width: 50
+                  height: 50
+                  radius: 25
                   on_click:
                     - script.execute: { id: "${uid}_adj", delta: 0.5 }
                   widgets:
                     - label: { align: CENTER, text_font: i32, text: $ic_plus }
               - button:
                   align: BOTTOM_RIGHT
-                  width: 52
-                  height: 52
-                  radius: 26
+                  width: 50
+                  height: 50
+                  radius: 25
                   on_click:
                     - script.execute: { id: "${uid}_adj", delta: -0.5 }
                   widgets:

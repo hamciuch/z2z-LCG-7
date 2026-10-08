@@ -8,8 +8,8 @@ lvgl:
       widgets:
         - button:
             id: ${uid}
-            width: 180
-            height: 72
+            width: 187
+            height: 64
             radius: 16
             bg_color: c_card2
             border_width: 0
@@ -27,13 +27,13 @@ lvgl:
             widgets:
               - label:
                   align: LEFT_MID
-                  text_font: i32
+                  text_font: i24
                   text_color: c_muted
                   text: "${icon}"
               - label:
                   align: LEFT_MID
-                  x: 42
-                  width: 120
+                  x: 32
+                  width: 136
                   long_mode: WRAP
                   text_font: f18
                   text: "${name}"

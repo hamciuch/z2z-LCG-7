@@ -1,5 +1,5 @@
 {#-
-  Panel Z2Z – szczegóły odkurzacza Dreame (integracja Tasshack/dreame-vacuum).
+  Panel Z2Z – szczegóły: odkurzacz Dreame (pomieszczenia), czujniki ruchu, drukarka Bambu.
   Wklej w: Narzędzia deweloperskie → Szablon. Wynik odeślij Claude'owi.
   Zmień `v`, jeśli Twój odkurzacz ma inne entity_id.
 -#}
@@ -28,4 +28,14 @@
 ## Encje odkurzacza (select / button / sensor / number)
 {%- for s in states if prefix in s.entity_id and s.domain in ['select', 'button', 'sensor', 'number', 'binary_sensor', 'camera'] %}
 - {{ s.entity_id }} | {{ s.name }} | {{ s.state }}{% if s.attributes.options is defined %} | opcje: {{ s.attributes.options | join(', ') }}{% endif %}
+{%- endfor %}
+
+## Czujniki ruchu / obecności (binary_sensor motion, occupancy, presence)
+{%- for s in states.binary_sensor if s.attributes.device_class in ['motion', 'occupancy', 'presence'] or 'ruch' in s.entity_id or 'pir' in s.entity_id or 'satel' in s.entity_id or 'czujk' in s.entity_id %}
+- {{ s.entity_id }} | {{ s.name }} | {{ s.state }} | dc={{ s.attributes.device_class }}
+{%- endfor %}
+
+## Drukarka 3D (Bambu)
+{%- for s in states if 'p1s_' in s.entity_id and s.domain == 'sensor' %}
+- {{ s.entity_id }} | {{ s.name }} | {{ s.state }}{{ ' ' ~ s.attributes.unit_of_measurement if s.attributes.unit_of_measurement is defined else '' }}
 {%- endfor %}

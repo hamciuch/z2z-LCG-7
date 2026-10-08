@@ -1,0 +1,20 @@
+# Czujnik ruchu (np. Satel Integra) – wybudza ekran przy wykryciu ruchu i trzyma go
+# włączonym, dopóki czujnik pokazuje ruch. Ekran gaśnie po czasie "Wygaszanie ekranu po"
+# (domyślnie 10 min) od ostatniego ruchu albo dotyku.
+# vars: uid, entity
+binary_sensor:
+  - platform: homeassistant
+    id: ${uid}
+    entity_id: ${entity}
+    internal: true
+    on_press:
+      - script.execute: wake_screen
+
+interval:
+  - interval: 30s
+    then:
+      - if:
+          condition:
+            binary_sensor.is_on: ${uid}
+          then:
+            - lambda: lv_display_trigger_activity(id(lvgl_main)->get_disp());

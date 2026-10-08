@@ -1,0 +1,57 @@
+# Pulpit "Światła": przełącznik światła (light.* albo switch.*).
+# Zapalone = bursztynowy kafelek, dotknięcie = przełącz (homeassistant.toggle).
+# Kafelek 148×112 – 5 w rzędzie, 15 mieści się na ekranie.
+# vars: uid, entity, name, icon
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_lt
+    entity_id: ${entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          bool on = z2z::is_active(x);
+          bool na = x == "unavailable" || x == "unknown";
+          lv_obj_set_style_bg_color(id(${uid}_btn), lv_color_hex(on ? 0x3A2E10 : 0x1C2028), 0);
+          lv_obj_set_style_border_width(id(${uid}_btn), on ? 2 : 0, 0);
+          z2z::set_text_color(id(${uid}_ico), on ? z2z::C_ACCENT : z2z::C_MUTED);
+          lv_label_set_text(id(${uid}_st), na ? "niedostępne" : (on ? "włączone" : "wyłączone"));
+          lv_obj_set_style_opa(id(${uid}_btn), na ? LV_OPA_50 : LV_OPA_COVER, 0);
+
+lvgl:
+  pages:
+    - id: !extend page_lights
+      widgets:
+        - button:
+            id: ${uid}_btn
+            width: 148
+            height: 112
+            radius: 16
+            bg_color: c_card
+            border_color: c_accent
+            border_width: 0
+            pad_all: 10
+            on_click:
+              - homeassistant.action:
+                  action: homeassistant.toggle
+                  data:
+                    entity_id: ${entity}
+            widgets:
+              - label:
+                  id: ${uid}_ico
+                  align: TOP_LEFT
+                  text_font: i32
+                  text_color: c_muted
+                  text: "${icon}"
+              - label:
+                  align: BOTTOM_LEFT
+                  y: -18
+                  width: 126
+                  long_mode: DOT
+                  text_font: f18
+                  text: "${name}"
+              - label:
+                  id: ${uid}_st
+                  align: BOTTOM_LEFT
+                  text_font: f14
+                  text_color: c_muted
+                  text: ""

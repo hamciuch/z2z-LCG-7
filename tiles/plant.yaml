@@ -52,33 +52,33 @@ lvgl:
       widgets:
         - obj:
             styles: card_style
-            width: 244
-            height: 128
+            width: 187
+            height: 150
             scrollable: false
             widgets:
               - label:
                   align: TOP_LEFT
-                  text_font: i32
+                  text_font: i24
                   text_color: c_ok
                   text: $ic_sprout
               - label:
                   align: TOP_LEFT
-                  x: 40
-                  y: 4
-                  width: 170
-                  long_mode: DOT
-                  text_font: f22
+                  x: 30
+                  y: 2
+                  width: 135
+                  long_mode: WRAP
+                  text_font: f14
                   text: "${name}"
               - label:
                   id: ${uid}_pct
                   align: LEFT_MID
-                  y: 10
+                  y: 14
                   text_font: f28
                   text: "--%"
               - label:
                   id: ${uid}_thr_lbl
                   align: RIGHT_MID
-                  y: 10
+                  y: 18
                   text_font: f14
                   text_color: c_muted
                   text: ""
@@ -100,24 +100,24 @@ lvgl:
             styles: alert_style
             hidden: true
             on_click:
-              - script.execute: { id: goto_page, idx: 5 }
+              - script.execute: { id: goto_page, idx: 6 }
             widgets:
               - label:
                   align: LEFT_MID
-                  text_font: i48
+                  text_font: i32
                   text_color: c_water
                   text: $ic_water_alert
               - label:
                   align: TOP_LEFT
-                  x: 64
-                  width: 270
+                  x: 58
+                  width: 222
                   long_mode: DOT
-                  text_font: f22
+                  text_font: f18
                   text: "Podlej: ${name}"
               - label:
                   id: ${uid}_aval
                   align: BOTTOM_LEFT
-                  x: 64
-                  text_font: f28
+                  x: 58
+                  text_font: f22
                   text_color: c_warn
                   text: ""

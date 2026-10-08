@@ -15,21 +15,23 @@ substitutions:
   balcony_temp_entity: sensor.stacja_pogody_esp32_bme280_temperature   # SPRAWDŹ: stacja pogody na balkonie
   rain_entity: binary_sensor.tr_czujnik_deszczu_rain                    # on = pada
   rain_states: "on"
-  server_entity: binary_sensor.proxmox_status                          # SPRAWDŹ: który serwer pokazywać
-  server_ok_states: "on"
+  # serwer: działa, gdy gniazdko Tasmota-Server pobiera > server_power_min W
+  server_power_entity: sensor.tasmota_server_energy_power
+  server_power_min: "20"
 
   # ── Ekran ──────────────────────────────────────────────────────────────────
-  screen_timeout_default: "10"   # min, 0 = nigdy (zmienisz też w HA / WWW)
+  screen_timeout_default: "10"   # min bez dotyku i bez ruchu → wygaszenie (zmienisz też w HA / WWW)
   home_return_default: "60"      # s – powrót na pulpit główny
   touch_swap_xy: "false"
   touch_mirror_x: "false"
   touch_mirror_y: "false"
 
   # ── Pulpity ────────────────────────────────────────────────────────────────
+  hide_page_lights: "false"
   hide_page_heating: "false"
   hide_page_car: "false"
   hide_page_vacuum: "false"
-  hide_page_dishwasher: "false"
+  hide_page_appliances: "false"
   hide_page_plants: "false"
 
 packages:
@@ -39,7 +41,7 @@ packages:
   person_3: !include { file: ../tiles/person.yaml, vars: { uid: person_3, slot: 2, name: "Gabrysia", entity: person.gabrysia } }
   person_4: !include { file: ../tiles/person.yaml, vars: { uid: person_4, slot: 3, name: "Wiktor",   entity: person.wiktorek } }
 
-  # ── Pulpit 1: TERAZ – pokazują się tylko WŁĄCZONE (dotknięcie = wyłącz) ─────
+  # ── Pulpit 0: TERAZ – pokazują się tylko WŁĄCZONE (dotknięcie = wyłącz) ─────
   # Salon
   l_sn_glowne:  !include { file: ../tiles/active.yaml, vars: { uid: l_sn_glowne, name: "Salon",         icon: $ic_lightbulb, entity: switch.sn_oswietlenie_glowne } }
   l_sn_sciana:  !include { file: ../tiles/active.yaml, vars: { uid: l_sn_sciana, name: "Salon ściana",  icon: $ic_lightbulb, entity: switch.sn_swiatlo_sciana } }
@@ -51,7 +53,6 @@ packages:
   l_sp_lampka:  !include { file: ../tiles/active.yaml, vars: { uid: l_sp_lampka, name: "Lampka sypialnia", icon: $ic_lightbulb, entity: switch.sp_lampka_tasmota } }
   # Pokój dzieci
   l_pd:         !include { file: ../tiles/active.yaml, vars: { uid: l_pd,     name: "Pokój dzieci",    icon: $ic_lightbulb, entity: switch.pd_oswietlenie } }
-  l_pd_lampka:  !include { file: ../tiles/active.yaml, vars: { uid: l_pd_lampka, name: "Lampka dzieci", icon: $ic_lightbulb, entity: light.pd_lampka } }
   # Łazienka / toaleta / garderoba / pralnia
   l_lz_1:       !include { file: ../tiles/active.yaml, vars: { uid: l_lz_1, name: "Łazienka 1", icon: $ic_lightbulb, entity: light.lz_swiatlo_l1 } }
   l_lz_2:       !include { file: ../tiles/active.yaml, vars: { uid: l_lz_2, name: "Łazienka 2", icon: $ic_lightbulb, entity: light.lz_swiatlo_l2 } }
@@ -63,22 +64,49 @@ packages:
   tv_salon:     !include { file: ../tiles/active.yaml, vars: { uid: tv_salon, name: "TV salon",     icon: $ic_television, entity: media_player.telewizor_2 } }   # SPRAWDŹ: telewizor / _2 / _3
   tv_sp:        !include { file: ../tiles/active.yaml, vars: { uid: tv_sp,    name: "TV sypialnia", icon: $ic_television, entity: media_player.living_room_ue40h6700 } }
   ps5:          !include { file: ../tiles/active.yaml, vars: { uid: ps5,      name: "PS5",          icon: $ic_gamepad,    entity: media_player.playstation_5 } }
-  # Gniazdka wg poboru mocy [W]. switch_entity "" = dotknięcie NIC nie wyłącza
-  # (pralka, suszarka, drukarka – żeby nie przerwać pracy przypadkiem)
+  # Gniazdka wg poboru mocy [W]; dotknięcie wyłącza switch_entity ("" = nic nie robi)
   ekspres:  !include { file: ../tiles/active_power.yaml, vars: { uid: ekspres,  name: "Ekspres",     icon: $ic_coffee_maker,     entity: sensor.sn_ekspres_energy_power,  threshold: 5,  switch_entity: switch.sn_ekspres } }
   czajnik:  !include { file: ../tiles/active_power.yaml, vars: { uid: czajnik,  name: "Czajnik",     icon: $ic_kettle,           entity: sensor.czajnik_energy_power,     threshold: 50, switch_entity: switch.czajnik } }
-  drukarka: !include { file: ../tiles/active_power.yaml, vars: { uid: drukarka, name: "Drukarka 3D", icon: $ic_printer_3d,       entity: sensor.drukarka3d_energy_power,  threshold: 30, switch_entity: "" } }
   okap:     !include { file: ../tiles/active_power.yaml, vars: { uid: okap,     name: "Okap",        icon: $ic_fan,              entity: sensor.okap_energy_power,        threshold: 5,  switch_entity: switch.okap } }
-  pralka:   !include { file: ../tiles/active_power.yaml, vars: { uid: pralka,   name: "Pralka",      icon: $ic_washing_machine,  entity: sensor.pokoj_dzieci_grillplats_plug_moc, threshold: 5, switch_entity: "" } }
-  suszarka: !include { file: ../tiles/active_power.yaml, vars: { uid: suszarka, name: "Suszarka",    icon: $ic_washing_machine,  entity: sensor.grillplats_plug_moc,      threshold: 5,  switch_entity: "" } }
 
-  # ── Pulpit 2: OGRZEWANIE (głowice: climate.*) ──────────────────────────────
+  # Drukarka 3D (Bambu P1S) – kafelek TYLKO podczas druku, z godziną końca
+  printer: !include
+    file: ../tiles/printer.yaml
+    vars:
+      uid: printer
+      name: "Drukarka 3D"
+      status_entity: sensor.p1s_01p00a3a2600140_status_druku          # SPRAWDŹ (tools/ha_details.jinja)
+      progress_entity: sensor.p1s_01p00a3a2600140_postep_drukowania
+      remaining_entity: sensor.p1s_01p00a3a2600140_pozostaly_czas
+      task_entity: sensor.p1s_01p00a3a2600140_nazwa_zadania
+      printing_states: "running,prepare,pause,slicing,init"
+
+  # Czujniki ruchu (Satel) – ruch wybudza ekran; 10 min bez ruchu i dotyku → wygaszenie.
+  # Encje uzupełnię po wyniku tools/ha_details.jinja, np.:
+  # ruch_salon: !include { file: ../tiles/motion_wake.yaml, vars: { uid: ruch_salon, entity: binary_sensor.salon_ruch } }
+
+  # ── Pulpit 1: ŚWIATŁA (wszystkie; dotknięcie = przełącz) ───────────────────
+  sw_sn:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sn,      name: "Salon",            icon: $ic_lightbulb, entity: switch.sn_oswietlenie_glowne } }
+  sw_sn_sc:   !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sn_sc,   name: "Salon ściana",     icon: $ic_lightbulb, entity: switch.sn_swiatlo_sciana } }
+  sw_kc1:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_kc1,     name: "Kuchnia 1",        icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l1 } }
+  sw_kc2:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_kc2,     name: "Kuchnia 2",        icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l2 } }
+  sw_sp:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sp,      name: "Sypialnia",        icon: $ic_lightbulb, entity: light.sp_swiatlo } }
+  sw_sp_l:    !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sp_l,    name: "Lampka sypialnia", icon: $ic_lightbulb, entity: switch.sp_lampka_tasmota } }
+  sw_pd:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_pd,      name: "Pokój dzieci",     icon: $ic_lightbulb, entity: switch.pd_oswietlenie } }
+  sw_lz1:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_lz1,     name: "Łazienka 1",       icon: $ic_lightbulb, entity: light.lz_swiatlo_l1 } }
+  sw_lz2:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_lz2,     name: "Łazienka 2",       icon: $ic_lightbulb, entity: light.lz_swiatlo_l2 } }
+  sw_tl:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_tl,      name: "Toaleta",          icon: $ic_lightbulb, entity: light.tl_oswietlenie } }
+  sw_tl_l:    !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_tl_l,    name: "Lustro toaleta",   icon: $ic_lightbulb, entity: light.tl_lustro } }
+  sw_gb:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_gb,      name: "Garderoba",        icon: $ic_lightbulb, entity: light.gb_swiatlo } }
+  sw_pr:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_pr,      name: "Pralnia",          icon: $ic_lightbulb, entity: light.pr_swiatlo } }
+
+  # ── Pulpit 2: OGRZEWANIE (głowice + czujniki Zigbee w pokojach) ────────────
   # Uwaga: głowice są w trybie "auto" (harmonogram) – ręczna zmiana zadanej może
   # zostać nadpisana przez harmonogram przy następnym kroku.
-  h_salon:   !include { file: ../tiles/climate.yaml, vars: { uid: h_salon,   name: "Salon",        entity: climate.sn_thermostat } }
-  h_sp:      !include { file: ../tiles/climate.yaml, vars: { uid: h_sp,      name: "Sypialnia",    entity: climate.sp_thermostat } }
-  h_pd:      !include { file: ../tiles/climate.yaml, vars: { uid: h_pd,      name: "Pokój dzieci", entity: climate.pd_themostat } }
-  h_lz:      !include { file: ../tiles/climate.yaml, vars: { uid: h_lz,      name: "Łazienka",     entity: climate.lz_thermostat } }
+  h_salon: !include { file: ../tiles/climate.yaml, vars: { uid: h_salon, name: "Salon",        entity: climate.sn_thermostat, room_temp_entity: sensor.sn_temperatura_temperature } }
+  h_sp:    !include { file: ../tiles/climate.yaml, vars: { uid: h_sp,    name: "Sypialnia",    entity: climate.sp_thermostat, room_temp_entity: sensor.sp_temperatura_temperature } }
+  h_pd:    !include { file: ../tiles/climate.yaml, vars: { uid: h_pd,    name: "Pokój dzieci", entity: climate.pd_themostat,  room_temp_entity: sensor.pd_temperatura_temperature } }
+  h_lz:    !include { file: ../tiles/climate.yaml, vars: { uid: h_lz,    name: "Łazienka",     entity: climate.lz_thermostat, room_temp_entity: sensor.lz_temperatura_temperature } }
 
   # ── Pulpit 3: SAMOCHÓD (MG HS) ─────────────────────────────────────────────
   car_fuel:   !include { file: ../tiles/value_card.yaml, vars: { uid: car_fuel,   page: page_car, name: "Paliwo",          icon: $ic_gas_station,   entity: sensor.mg_hs_fuel_level_2,     unit: "%",   decimals: 0 } }
@@ -102,7 +130,7 @@ packages:
       decimals: 0
       min: 0
       max: 100
-  car_open: !include { file: ../tiles/alert_state.yaml, vars: { uid: car_open, entity: lock.mg_hs_lock_2, message: "Auto jest otwarte", icon: $ic_lock_open, states: "unlocked,open", goto: 2 } }
+  car_open: !include { file: ../tiles/alert_state.yaml, vars: { uid: car_open, entity: lock.mg_hs_lock_2, message: "Auto jest otwarte", icon: $ic_lock_open, states: "unlocked,open", goto: 3 } }
 
   # ── Pulpit 4: ODKURZACZ Dreame X40 (tylko wybrane pomieszczenia) ───────────
   # ID pomieszczeń (segment) weź z tools/ha_vacuum.jinja – PONIŻSZE SĄ TYMCZASOWE!
@@ -117,7 +145,7 @@ packages:
   vr_kor:    !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_kor,    segment: 8, name: "Korytarz",     icon: $ic_door } }
   vac_ctrl: !include { file: ../tiles/vacuum_controls.yaml, vars: { prefix: x40_ultra_complete } }
 
-  # ── Pulpit 5: ZMYWARKA ─────────────────────────────────────────────────────
+  # ── Pulpit 5: AGD – zmywarka, pralka, suszarka ─────────────────────────────
   dish: !include
     file: ../tiles/dishwasher.yaml
     vars:
@@ -130,8 +158,15 @@ packages:
       door_entity: binary_sensor.zmywarka_do_naczyn_door        # SPRAWDŹ: on = drzwi otwarte?
       door_open_states: "on,open"
       remaining_entity: sensor.zmywarka_do_naczyn_current_program_remaining_time
-  dish_salt: !include { file: ../tiles/alert_state.yaml, vars: { uid: dish_salt,  entity: binary_sensor.zmywarka_do_naczyn_salt_refill,      message: "Zmywarka: uzupełnij sól",          icon: $ic_dishwasher_alert, states: "on", goto: 4 } }
-  dish_rinse: !include { file: ../tiles/alert_state.yaml, vars: { uid: dish_rinse, entity: binary_sensor.zmywarka_do_naczyn_rinse_aid_refill, message: "Zmywarka: uzupełnij nabłyszczacz", icon: $ic_dishwasher_alert, states: "on", goto: 4 } }
+  dish_salt: !include { file: ../tiles/alert_state.yaml, vars: { uid: dish_salt,  entity: binary_sensor.zmywarka_do_naczyn_salt_refill,      message: "Zmywarka: uzupełnij sól",          icon: $ic_dishwasher_alert, states: "on", goto: 5 } }
+  dish_rinse: !include { file: ../tiles/alert_state.yaml, vars: { uid: dish_rinse, entity: binary_sensor.zmywarka_do_naczyn_rinse_aid_refill, message: "Zmywarka: uzupełnij nabłyszczacz", icon: $ic_dishwasher_alert, states: "on", goto: 5 } }
+
+  pralka: !include
+    file: ../tiles/appliance_power.yaml
+    vars: { uid: pralka, name: "Pralka", icon: $ic_washing_machine, entity: sensor.pokoj_dzieci_grillplats_plug_moc, threshold: 5, finish_min: 5, finish_message: "Pralka skończyła – wyjmij pranie" }
+  suszarka: !include
+    file: ../tiles/appliance_power.yaml
+    vars: { uid: suszarka, name: "Suszarka", icon: $ic_washing_machine, entity: sensor.grillplats_plug_moc, threshold: 5, finish_min: 3, finish_message: "Suszarka skończyła – wyjmij pranie" }
 
   # ── Pulpit 6: ROŚLINY (alert "Podlej" poniżej progu; progi zmienisz w HA/WWW)
   p_kaktus:   !include { file: ../tiles/plant.yaml, vars: { uid: p_kaktus,   name: "Kaktus",               entity: sensor.sn_kaktus_soil_moisture,                    threshold: 8 } }

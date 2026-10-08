@@ -17,8 +17,8 @@ lvgl:
       widgets:
         - obj:
             styles: card_style
-            width: 244
-            height: 128
+            width: 253
+            height: 150
             scrollable: false
             widgets:
               - label:
@@ -30,7 +30,7 @@ lvgl:
                   align: TOP_LEFT
                   x: 42
                   y: 4
-                  width: 170
+                  width: 190
                   long_mode: DOT
                   text_font: f18
                   text_color: c_muted
@@ -38,7 +38,7 @@ lvgl:
               - label:
                   id: ${uid}_lbl
                   align: BOTTOM_LEFT
-                  width: 216
+                  width: 230
                   long_mode: DOT
                   text_font: f28
                   text: "--"
