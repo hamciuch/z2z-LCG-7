@@ -1,0 +1,658 @@
+# Odkurzacz – część 3/3: OPCJE i STEROWANIE.
+# Opcje ustawiają selecty integracji Dreame w HA (to samo co w aplikacji):
+#   CleanGenius (gdy włączony, robot sam dobiera tryb/moc/mop – pozostałe wiersze są wtedy ignorowane),
+#   tryb sprzątania, moc ssania, wilgotność mopa, liczba przejść.
+# "Sprzątaj wybrane" → dreame_vacuum.vacuum_clean_segment z zaznaczonymi pomieszczeniami.
+# Nigdy nie uruchamia sprzątania całego mieszkania.
+# vars: prefix
+
+text_sensor:
+  - platform: homeassistant
+    id: vac_cg_st
+    entity_id: select.${prefix}_cleangenius
+    internal: true
+    on_value:
+      - lambda: |-
+          lv_obj_t *const b[] = {id(vac_cg_0), id(vac_cg_1), id(vac_cg_2)};
+          static const char *const o[] = {"off", "routine_cleaning", "deep_cleaning"};
+          z2z::mark_row(id(vac_cg_row), b, o, 3, x);
+          bool cg = x != "off" && x != "unavailable" && x != "unknown";
+          z2z::show(id(vac_cg_hint), cg);
+  - platform: homeassistant
+    id: vac_mode_st
+    entity_id: select.${prefix}_cleaning_mode
+    internal: true
+    on_value:
+      - lambda: |-
+          lv_obj_t *const b[] = {id(vac_mode_0), id(vac_mode_1), id(vac_mode_2), id(vac_mode_3)};
+          static const char *const o[] = {"sweeping", "mopping", "sweeping_and_mopping", "mopping_after_sweeping"};
+          z2z::mark_row(id(vac_mode_row), b, o, 4, x);
+  - platform: homeassistant
+    id: vac_suc_st
+    entity_id: select.${prefix}_suction_level
+    internal: true
+    on_value:
+      - lambda: |-
+          lv_obj_t *const b[] = {id(vac_suc_0), id(vac_suc_1), id(vac_suc_2), id(vac_suc_3)};
+          static const char *const o[] = {"quiet", "standard", "strong", "turbo"};
+          z2z::mark_row(id(vac_suc_row), b, o, 4, x);
+  - platform: homeassistant
+    id: vac_mop_st
+    entity_id: select.${prefix}_mop_pad_humidity
+    internal: true
+    on_value:
+      - lambda: |-
+          lv_obj_t *const b[] = {id(vac_mop_0), id(vac_mop_1), id(vac_mop_2)};
+          static const char *const o[] = {"slightly_dry", "moist", "wet"};
+          z2z::mark_row(id(vac_mop_row), b, o, 3, x);
+
+lvgl:
+  pages:
+    - id: !extend page_vacuum
+      widgets:
+        - label:
+            styles: title_style
+            text_font: f22
+            text: "Opcje sprzątania"
+
+        - obj:
+            id: vac_cg_row
+            width: 100%
+            height: SIZE_CONTENT
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            scrollable: false
+            layout:
+              type: flex
+              flex_flow: ROW
+              flex_align_cross: CENTER
+              pad_column: 10
+            widgets:
+              - label:
+                  width: 150
+                  text_font: f18
+                  text_color: c_muted
+                  text: "CleanGenius"
+              - button:
+                  id: vac_cg_0
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_cg_0), id(vac_cg_1), id(vac_cg_2)};
+                        for (int j = 0; j < 3; j++) z2z::mark(b[j], j == 0);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_cleangenius
+                          option: "off"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Wyłączone" }
+              - button:
+                  id: vac_cg_1
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_cg_0), id(vac_cg_1), id(vac_cg_2)};
+                        for (int j = 0; j < 3; j++) z2z::mark(b[j], j == 1);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_cleangenius
+                          option: "routine_cleaning"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Rutynowe" }
+              - button:
+                  id: vac_cg_2
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_cg_0), id(vac_cg_1), id(vac_cg_2)};
+                        for (int j = 0; j < 3; j++) z2z::mark(b[j], j == 2);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_cleangenius
+                          option: "deep_cleaning"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Głębokie" }
+        - label:
+            id: vac_cg_hint
+            hidden: true
+            width: 100%
+            text_font: f14
+            text_color: c_warn
+            text: "CleanGenius włączony – robot sam dobiera tryb, moc i mop (wiersze poniżej są ignorowane)"
+
+        - obj:
+            id: vac_mode_row
+            width: 100%
+            height: SIZE_CONTENT
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            scrollable: false
+            layout:
+              type: flex
+              flex_flow: ROW
+              flex_align_cross: CENTER
+              pad_column: 10
+            widgets:
+              - label:
+                  width: 150
+                  text_font: f18
+                  text_color: c_muted
+                  text: "Tryb"
+              - button:
+                  id: vac_mode_0
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_mode_0), id(vac_mode_1), id(vac_mode_2), id(vac_mode_3)};
+                        for (int j = 0; j < 4; j++) z2z::mark(b[j], j == 0);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_cleaning_mode
+                          option: "sweeping"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Odkurzanie" }
+              - button:
+                  id: vac_mode_1
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_mode_0), id(vac_mode_1), id(vac_mode_2), id(vac_mode_3)};
+                        for (int j = 0; j < 4; j++) z2z::mark(b[j], j == 1);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_cleaning_mode
+                          option: "mopping"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Mopowanie" }
+              - button:
+                  id: vac_mode_2
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_mode_0), id(vac_mode_1), id(vac_mode_2), id(vac_mode_3)};
+                        for (int j = 0; j < 4; j++) z2z::mark(b[j], j == 2);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_cleaning_mode
+                          option: "sweeping_and_mopping"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Odk. + mop" }
+              - button:
+                  id: vac_mode_3
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_mode_0), id(vac_mode_1), id(vac_mode_2), id(vac_mode_3)};
+                        for (int j = 0; j < 4; j++) z2z::mark(b[j], j == 3);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_cleaning_mode
+                          option: "mopping_after_sweeping"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Mop po odk." }
+        - obj:
+            id: vac_suc_row
+            width: 100%
+            height: SIZE_CONTENT
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            scrollable: false
+            layout:
+              type: flex
+              flex_flow: ROW
+              flex_align_cross: CENTER
+              pad_column: 10
+            widgets:
+              - label:
+                  width: 150
+                  text_font: f18
+                  text_color: c_muted
+                  text: "Moc ssania"
+              - button:
+                  id: vac_suc_0
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_suc_0), id(vac_suc_1), id(vac_suc_2), id(vac_suc_3)};
+                        for (int j = 0; j < 4; j++) z2z::mark(b[j], j == 0);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_suction_level
+                          option: "quiet"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Cicho" }
+              - button:
+                  id: vac_suc_1
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_suc_0), id(vac_suc_1), id(vac_suc_2), id(vac_suc_3)};
+                        for (int j = 0; j < 4; j++) z2z::mark(b[j], j == 1);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_suction_level
+                          option: "standard"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Standard" }
+              - button:
+                  id: vac_suc_2
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_suc_0), id(vac_suc_1), id(vac_suc_2), id(vac_suc_3)};
+                        for (int j = 0; j < 4; j++) z2z::mark(b[j], j == 2);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_suction_level
+                          option: "strong"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Mocno" }
+              - button:
+                  id: vac_suc_3
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_suc_0), id(vac_suc_1), id(vac_suc_2), id(vac_suc_3)};
+                        for (int j = 0; j < 4; j++) z2z::mark(b[j], j == 3);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_suction_level
+                          option: "turbo"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Turbo" }
+        - obj:
+            id: vac_mop_row
+            width: 100%
+            height: SIZE_CONTENT
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            scrollable: false
+            layout:
+              type: flex
+              flex_flow: ROW
+              flex_align_cross: CENTER
+              pad_column: 10
+            widgets:
+              - label:
+                  width: 150
+                  text_font: f18
+                  text_color: c_muted
+                  text: "Mop"
+              - button:
+                  id: vac_mop_0
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_mop_0), id(vac_mop_1), id(vac_mop_2)};
+                        for (int j = 0; j < 3; j++) z2z::mark(b[j], j == 0);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_mop_pad_humidity
+                          option: "slightly_dry"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Lekko wilg." }
+              - button:
+                  id: vac_mop_1
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_mop_0), id(vac_mop_1), id(vac_mop_2)};
+                        for (int j = 0; j < 3; j++) z2z::mark(b[j], j == 1);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_mop_pad_humidity
+                          option: "moist"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Wilgotny" }
+              - button:
+                  id: vac_mop_2
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        lv_obj_t *const b[] = {id(vac_mop_0), id(vac_mop_1), id(vac_mop_2)};
+                        for (int j = 0; j < 3; j++) z2z::mark(b[j], j == 2);
+                    - homeassistant.action:
+                        action: select.select_option
+                        data:
+                          entity_id: select.${prefix}_mop_pad_humidity
+                          option: "wet"
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "Mokry" }
+        - obj:
+            id: vac_rep_row
+            width: 100%
+            height: SIZE_CONTENT
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            scrollable: false
+            layout:
+              type: flex
+              flex_flow: ROW
+              flex_align_cross: CENTER
+              pad_column: 10
+            widgets:
+              - label:
+                  width: 150
+                  text_font: f18
+                  text_color: c_muted
+                  text: "Przejścia"
+              - button:
+                  id: vac_rep_0
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        id(vac_repeats) = 1;
+                        lv_obj_t *const b[] = {id(vac_rep_0), id(vac_rep_1), id(vac_rep_2)};
+                        for (int j = 0; j < 3; j++) z2z::mark(b[j], j == 0);
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "1×" }
+              - button:
+                  id: vac_rep_1
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        id(vac_repeats) = 2;
+                        lv_obj_t *const b[] = {id(vac_rep_0), id(vac_rep_1), id(vac_rep_2)};
+                        for (int j = 0; j < 3; j++) z2z::mark(b[j], j == 1);
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "2×" }
+              - button:
+                  id: vac_rep_2
+                  width: 140
+                  height: 56
+                  radius: 12
+                  on_click:
+                    - lambda: |-
+                        id(vac_repeats) = 3;
+                        lv_obj_t *const b[] = {id(vac_rep_0), id(vac_rep_1), id(vac_rep_2)};
+                        for (int j = 0; j < 3; j++) z2z::mark(b[j], j == 2);
+                  widgets:
+                    - label: { align: CENTER, text_font: f18, text: "3×" }
+        - label:
+            styles: title_style
+            text_font: f22
+            text: "Sterowanie"
+        - obj:
+            width: 100%
+            height: SIZE_CONTENT
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            scrollable: false
+            layout:
+              type: flex
+              flex_flow: ROW_WRAP
+              pad_row: 12
+              pad_column: 12
+            widgets:
+              - button:
+                  id: vac_start
+                  width: 372
+                  height: 64
+                  radius: 14
+                  bg_color: c_accent
+                  on_click:
+                    - if:
+                        condition:
+                          lambda: return !id(vac_sel).empty();
+                        then:
+                          - homeassistant.action:
+                              action: dreame_vacuum.vacuum_clean_segment
+                              data:
+                                entity_id: vacuum.${prefix}
+                              data_template:
+                                segments: "{{ segs }}"
+                                repeats: "{{ rep }}"
+                              variables:
+                                segs: !lambda |-
+                                  std::string s = "[";
+                                  for (size_t i = 0; i < id(vac_sel).size(); i++) {
+                                    if (i) s += ",";
+                                    s += std::to_string(id(vac_sel)[i]);
+                                  }
+                                  return s + "]";
+                                rep: !lambda return std::to_string(id(vac_repeats));
+                          - script.execute: vac_clear_selection
+                  widgets:
+                    - label: { id: vac_start_lbl, align: CENTER, text_font: f22, text_align: CENTER, text: "Sprzątaj wybrane", text_color: 0x000000 }
+              - button:
+                  id: vac_clear
+                  width: 180
+                  height: 64
+                  radius: 14
+                  on_click:
+                    - script.execute: vac_clear_selection
+                  widgets:
+                    - label: { id: vac_clear_lbl, align: CENTER, text_font: f22, text_align: CENTER, text: "Wyczyść wybór" }
+              - button:
+                  id: vac_mapbtn
+                  width: 180
+                  height: 64
+                  radius: 14
+                  on_click:
+                    - lvgl.widget.show: vac_map_popup
+                  widgets:
+                    - label: { id: vac_mapbtn_lbl, align: CENTER, text_font: f22, text_align: CENTER, text: "Mapowanie…" }
+              - button:
+                  id: vac_pause
+                  width: 180
+                  height: 64
+                  radius: 14
+                  on_click:
+                    - homeassistant.action:
+                        action: vacuum.pause
+                        data:
+                          entity_id: vacuum.${prefix}
+                  widgets:
+                    - label: { id: vac_pause_lbl, align: CENTER, text_font: f22, text_align: CENTER, text: "Pauza" }
+              - button:
+                  id: vac_resume
+                  width: 180
+                  height: 64
+                  radius: 14
+                  on_click:
+                    - homeassistant.action:
+                        action: vacuum.start
+                        data:
+                          entity_id: vacuum.${prefix}
+                  widgets:
+                    - label: { id: vac_resume_lbl, align: CENTER, text_font: f22, text_align: CENTER, text: "Wznów" }
+              - button:
+                  id: vac_stop
+                  width: 180
+                  height: 64
+                  radius: 14
+                  on_click:
+                    - homeassistant.action:
+                        action: vacuum.stop
+                        data:
+                          entity_id: vacuum.${prefix}
+                  widgets:
+                    - label: { id: vac_stop_lbl, align: CENTER, text_font: f22, text_align: CENTER, text: "Stop" }
+              - button:
+                  id: vac_dock
+                  width: 180
+                  height: 64
+                  radius: 14
+                  on_click:
+                    - homeassistant.action:
+                        action: vacuum.return_to_base
+                        data:
+                          entity_id: vacuum.${prefix}
+                  widgets:
+                    - label: { id: vac_dock_lbl, align: CENTER, text_font: f22, text_align: CENTER, text: "Do stacji" }
+              - button:
+                  id: vac_wash
+                  width: 180
+                  height: 64
+                  radius: 14
+                  on_click:
+                    - homeassistant.action:
+                        action: button.press
+                        data:
+                          entity_id: button.${prefix}_self_clean
+                  widgets:
+                    - label: { id: vac_wash_lbl, align: CENTER, text_font: f22, text_align: CENTER, text: "Umyj mop" }
+              - button:
+                  id: vac_dry
+                  width: 180
+                  height: 64
+                  radius: 14
+                  on_click:
+                    - homeassistant.action:
+                        action: button.press
+                        data:
+                          entity_id: button.${prefix}_manual_drying
+                  widgets:
+                    - label: { id: vac_dry_lbl, align: CENTER, text_font: f22, text_align: CENTER, text: "Susz mop" }
+
+  top_layer:
+    widgets:
+      - obj:
+          id: vac_map_popup
+          hidden: true
+          width: 100%
+          height: 100%
+          bg_color: 0x000000
+          bg_opa: 70%
+          border_width: 0
+          radius: 0
+          on_click:
+            - lvgl.widget.hide: vac_map_popup
+          widgets:
+            - obj:
+                align: CENTER
+                width: 600
+                height: 300
+                styles: card_style
+                bg_color: c_card2
+                clickable: true
+                scrollable: false
+                widgets:
+                  - label:
+                      align: TOP_LEFT
+                      text_font: f28
+                      text: "Mapowanie"
+                  - label:
+                      align: TOP_LEFT
+                      y: 44
+                      width: 560
+                      long_mode: WRAP
+                      text_font: f18
+                      text_color: c_muted
+                      text: "Utworzy NOWĄ mapę (obecna zostaje, ale pokoje na panelu mają ID z obecnej mapy). Uruchamiaj tylko, gdy wiesz, że tego chcesz."
+                  - button:
+                      align: BOTTOM_LEFT
+                      width: 180
+                      height: 72
+                      on_click:
+                        - lvgl.widget.hide: vac_map_popup
+                        - homeassistant.action:
+                            action: button.press
+                            data:
+                              entity_id: button.${prefix}_start_fast_mapping
+                      widgets:
+                        - label: { align: CENTER, text_font: f18, text_align: CENTER, text: "Szybkie\nmapowanie" }
+                  - button:
+                      align: BOTTOM_MID
+                      width: 180
+                      height: 72
+                      on_click:
+                        - lvgl.widget.hide: vac_map_popup
+                        - homeassistant.action:
+                            action: button.press
+                            data:
+                              entity_id: button.${prefix}_start_mapping
+                      widgets:
+                        - label: { align: CENTER, text_font: f18, text_align: CENTER, text: "Mapowanie\nze sprzątaniem" }
+                  - button:
+                      align: BOTTOM_RIGHT
+                      width: 180
+                      height: 72
+                      on_click:
+                        - lvgl.widget.hide: vac_map_popup
+                      widgets:
+                        - label: { align: CENTER, text_font: f18, text: "Anuluj" }
+
+script:
+  - id: vac_clear_selection
+    then:
+      - lambda: |-
+          lv_obj_t *page = id(page_vacuum)->obj;
+          uint32_t n = lv_obj_get_child_count(page);
+          for (uint32_t i = 0; i < n; i++) {
+            lv_obj_t *c = lv_obj_get_child(page, i);
+            if (lv_obj_has_flag(c, LV_OBJ_FLAG_CHECKABLE)) lv_obj_remove_state(c, LV_STATE_CHECKED);
+          }
+          id(vac_sel).clear();
+      - script.execute: vac_buttons_refresh
+
+  - id: vac_buttons_refresh
+    then:
+      - lambda: |-
+          const std::string &st = id(vac_state).state;
+          bool busy = st == "cleaning" || st == "returning";
+          bool paused = st == "paused";
+          size_t n = id(vac_sel).size();
+          z2z::enable(id(vac_start), n > 0 && !busy);
+          if (n > 0) lv_label_set_text_fmt(id(vac_start_lbl), "Sprzątaj wybrane (%d)", (int) n);
+          else lv_label_set_text(id(vac_start_lbl), "Zaznacz pomieszczenia");
+          z2z::enable(id(vac_clear), n > 0);
+          z2z::enable(id(vac_pause), busy);
+          z2z::enable(id(vac_resume), paused);
+          z2z::enable(id(vac_stop), busy || paused);
+          z2z::enable(id(vac_dock), st != "docked");
+          z2z::enable(id(vac_mapbtn), !busy);
+          lv_obj_t *const r[] = {id(vac_rep_0), id(vac_rep_1), id(vac_rep_2)};
+          for (int j = 0; j < 3; j++) z2z::mark(r[j], j == id(vac_repeats) - 1);
+

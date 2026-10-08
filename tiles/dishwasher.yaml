@@ -1,15 +1,14 @@
-# Zmywarka: karta na pulpicie "Zmywarka" + alert "Wyjmij naczynia".
-# Alert pojawia się przy przejściu z pracy (running_states) do końca
-# (finished_states) i znika po otwarciu drzwi (door_open_states) albo po dotknięciu.
-# Stan alertu przetrwa restart panelu.
-# vars: uid, name, state_entity, running_states, finished_states,
-#       door_entity, door_open_states, remaining_entity
+# Zmywarka: karta na pulpicie "Zmywarka" + alert "Wyjmij naczynia" na "Teraz".
+# Alert pojawia się, gdy done_entity przejdzie w stan z done_states (koniec programu),
+# znika po otwarciu drzwi (door_open_states) albo po dotknięciu. Przetrwa restart panelu.
+# vars: uid, name, status_entity, phase_entity, done_entity, done_states,
+#       door_entity, door_open_states, remaining_entity (minuty albo znacznik czasu ISO)
 globals:
   - id: ${uid}_unload
     type: bool
     restore_value: true
     initial_value: "false"
-  - id: ${uid}_was_running
+  - id: ${uid}_last_done
     type: bool
     restore_value: true
     initial_value: "false"
@@ -17,24 +16,33 @@ globals:
 text_sensor:
   - platform: homeassistant
     id: ${uid}_st
-    entity_id: ${state_entity}
+    entity_id: ${status_entity}
+    internal: true
+    on_value:
+      - lvgl.label.update:
+          id: ${uid}_state
+          text: !lambda return z2z::pl(x);
+      - script.execute: ${uid}_refresh
+
+  - platform: homeassistant
+    id: ${uid}_phase
+    entity_id: ${phase_entity}
+    internal: true
+    on_value:
+      - lvgl.label.update:
+          id: ${uid}_phase_lbl
+          text: !lambda return z2z::pl(x);
+
+  - platform: homeassistant
+    id: ${uid}_done
+    entity_id: ${done_entity}
     internal: true
     on_value:
       - lambda: |-
           if (x == "unavailable" || x == "unknown" || x.empty()) return;
-          bool running = z2z::in_list(x, "${running_states}");
-          bool finished = z2z::in_list(x, "${finished_states}");
-          if (running) {
-            id(${uid}_was_running) = true;
-            id(${uid}_unload) = false;
-          } else if (finished && id(${uid}_was_running)) {
-            id(${uid}_was_running) = false;
-            id(${uid}_unload) = true;
-          } else if (!finished) {
-            id(${uid}_was_running) = false;
-          }
-          lv_label_set_text(id(${uid}_state), z2z::pl(x).c_str());
-          z2z::set_text_color(id(${uid}_icon), running ? z2z::C_ACCENT : (finished ? z2z::C_OK : z2z::C_MUTED));
+          bool done = z2z::in_list(x, "${done_states}");
+          if (done && !id(${uid}_last_done)) id(${uid}_unload) = true;   // zbocze: właśnie skończyła
+          id(${uid}_last_done) = done;
       - script.execute: ${uid}_refresh
 
   - platform: homeassistant
@@ -62,9 +70,10 @@ script:
       - lambda: |-
           auto now = id(ha_time).now();
           int64_t now_utc = now.is_valid() ? (int64_t) now.timestamp : 0;
-          bool running = z2z::in_list(id(${uid}_st).state, "${running_states}");
-          std::string rem = running ? z2z::remaining(id(${uid}_rem).state, now_utc) : "";
-          lv_label_set_text(id(${uid}_rem_lbl), rem.empty() ? "" : ("Pozostało: " + rem).c_str());
+          std::string rem = z2z::remaining(id(${uid}_rem).state, now_utc);
+          bool running = !rem.empty() && rem != "0 min";
+          lv_label_set_text(id(${uid}_rem_lbl), running ? ("Pozostało: " + rem).c_str() : "");
+          z2z::set_text_color(id(${uid}_icon), running ? z2z::C_ACCENT : (id(${uid}_unload) ? z2z::C_OK : z2z::C_MUTED));
           if (z2z::set_visible(id(${uid}_alert), id(${uid}_unload))) id(wake_screen).execute();
       - script.execute: home_refresh
 
@@ -93,7 +102,7 @@ lvgl:
               - label:
                   align: TOP_LEFT
                   x: 90
-                  y: 10
+                  y: 6
                   text_font: f22
                   text_color: c_muted
                   text: "${name}"
@@ -101,14 +110,22 @@ lvgl:
                   id: ${uid}_state
                   align: TOP_LEFT
                   x: 90
-                  y: 44
+                  y: 38
                   text_font: f40
                   text: "--"
+              - label:
+                  id: ${uid}_phase_lbl
+                  align: TOP_LEFT
+                  x: 90
+                  y: 96
+                  text_font: f22
+                  text_color: c_muted
+                  text: ""
               - label:
                   id: ${uid}_rem_lbl
                   align: TOP_LEFT
                   x: 90
-                  y: 110
+                  y: 134
                   text_font: f28
                   text_color: c_accent
                   text: ""
@@ -116,7 +133,7 @@ lvgl:
                   id: ${uid}_door_lbl
                   align: TOP_LEFT
                   x: 90
-                  y: 160
+                  y: 184
                   text_font: f22
                   text_color: c_muted
                   text: ""

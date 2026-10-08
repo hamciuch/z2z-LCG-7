@@ -1,0 +1,39 @@
+# Odkurzacz – część 2/3: kafelek POMIESZCZENIA (zaznacz/odznacz).
+# segment = ID pomieszczenia z mapy Dreame (z zapytania tools/ha_vacuum.jinja).
+# Kolejność zaznaczania = kolejność wysyłana do odkurzacza.
+# vars: uid, segment, name, icon
+lvgl:
+  pages:
+    - id: !extend page_vacuum
+      widgets:
+        - button:
+            id: ${uid}
+            width: 180
+            height: 72
+            radius: 16
+            bg_color: c_card2
+            border_width: 0
+            checkable: true
+            checked:
+              bg_color: 0x5A4410
+              border_color: c_accent
+              border_width: 3
+            on_value:
+              - lambda: |-
+                  auto &v = id(vac_sel);
+                  v.erase(std::remove(v.begin(), v.end(), ${segment}), v.end());
+                  if (x) v.push_back(${segment});
+              - script.execute: vac_buttons_refresh
+            widgets:
+              - label:
+                  align: LEFT_MID
+                  text_font: i32
+                  text_color: c_muted
+                  text: "${icon}"
+              - label:
+                  align: LEFT_MID
+                  x: 42
+                  width: 120
+                  long_mode: WRAP
+                  text_font: f18
+                  text: "${name}"

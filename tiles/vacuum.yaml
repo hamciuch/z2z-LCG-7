@@ -1,29 +1,70 @@
-# Odkurzacz: stan, bateria, przyciski Start / Pauza / Do stacji.
-# Błąd odkurzacza automatycznie pokazuje alert na pulpicie głównym.
-# vars: uid, entity (vacuum.*), name, battery_entity (sensor %)
+# Odkurzacz (integracja Tasshack/dreame-vacuum) – część 1/3: STATUS.
+# Kolejność w config/home.yaml:  vacuum.yaml → vacuum_room.yaml (×N) → vacuum_controls.yaml
+#
+# Pokazuje: stan, szczegółowy status, baterię, bieżące pomieszczenie, powierzchnię.
+# Na pulpicie "Teraz": kafelek gdy sprząta (dotknij → pulpit odkurzacza) i alert przy błędzie.
+# vars: name, prefix (np. x40_ultra_complete – początek entity_id odkurzacza)
+globals:
+  - id: vac_sel                 # wybrane pomieszczenia (segment id) w kolejności klikania
+    type: std::vector<int>
+  - id: vac_repeats
+    type: int
+    initial_value: "1"
+
 text_sensor:
   - platform: homeassistant
-    id: ${uid}_st
-    entity_id: ${entity}
+    id: vac_state
+    entity_id: vacuum.${prefix}
     internal: true
     on_value:
       - lambda: |-
           bool err = x == "error";
-          bool cleaning = x == "cleaning" || x == "returning";
-          lv_label_set_text(id(${uid}_state), z2z::pl(x).c_str());
-          z2z::set_text_color(id(${uid}_icon), err ? z2z::C_ERR : (cleaning ? z2z::C_ACCENT : z2z::C_MUTED));
-          if (z2z::set_visible(id(${uid}_alert), err)) id(wake_screen).execute();
+          bool busy = x == "cleaning" || x == "returning";
+          lv_label_set_text(id(vac_state_lbl), z2z::pl(x).c_str());
+          z2z::set_text_color(id(vac_icon), err ? z2z::C_ERR : (busy ? z2z::C_ACCENT : z2z::C_MUTED));
+          z2z::set_visible(id(vac_home_tile), busy);
+          lv_label_set_text(id(vac_home_sub), z2z::pl(x).c_str());
+          if (z2z::set_visible(id(vac_alert), err)) id(wake_screen).execute();
+      - script.execute: vac_buttons_refresh
       - script.execute: home_refresh
 
-sensor:
   - platform: homeassistant
-    id: ${uid}_bat
-    entity_id: ${battery_entity}
+    id: vac_status
+    entity_id: sensor.${prefix}_state
     internal: true
     on_value:
       - lvgl.label.update:
-          id: ${uid}_bat_lbl
+          id: vac_status_lbl
+          text: !lambda return z2z::pl(x);
+
+  - platform: homeassistant
+    id: vac_room_now
+    entity_id: sensor.${prefix}_current_room
+    internal: true
+    on_value:
+      - lambda: |-
+          bool ok = !(x == "unavailable" || x == "unknown" || x.empty());
+          lv_label_set_text(id(vac_room_lbl), ok ? x.c_str() : "");
+          if (ok) lv_label_set_text(id(vac_home_sub), x.c_str());
+
+sensor:
+  - platform: homeassistant
+    id: vac_battery
+    entity_id: sensor.${prefix}_battery_level
+    internal: true
+    on_value:
+      - lvgl.label.update:
+          id: vac_bat_lbl
           text: !lambda return z2z::fmt(x, 0, "%");
+  - platform: homeassistant
+    id: vac_area
+    entity_id: sensor.${prefix}_cleaned_area
+    internal: true
+    on_value:
+      - lvgl.label.update:
+          id: vac_area_lbl
+          text: !lambda |-
+            return isnan(x) ? std::string("") : z2z::fmt(x, 0, " m²");
 
 lvgl:
   pages:
@@ -32,79 +73,89 @@ lvgl:
         - obj:
             styles: card_style
             width: 100%
-            height: 250
+            height: 96
             scrollable: false
             widgets:
               - label:
-                  id: ${uid}_icon
-                  align: TOP_LEFT
-                  x: 6
-                  y: 6
+                  id: vac_icon
+                  align: LEFT_MID
                   text_font: i48
                   text_color: c_muted
                   text: $ic_robot_vacuum
               - label:
+                  id: vac_state_lbl
                   align: TOP_LEFT
-                  x: 80
-                  y: 6
-                  text_font: f22
-                  text_color: c_muted
-                  text: "${name}"
-              - label:
-                  id: ${uid}_state
-                  align: TOP_LEFT
-                  x: 80
-                  y: 36
-                  text_font: f40
+                  x: 70
+                  text_font: f28
                   text: "--"
               - label:
-                  align: TOP_RIGHT
-                  x: -70
-                  y: 14
+                  id: vac_status_lbl
+                  align: BOTTOM_LEFT
+                  x: 70
+                  text_font: f18
+                  text_color: c_muted
+                  text: ""
+              - label:
+                  id: vac_room_lbl
+                  align: TOP_MID
+                  x: 90
+                  text_font: f22
+                  text_color: c_accent
+                  text: ""
+              - label:
+                  id: vac_area_lbl
+                  align: BOTTOM_MID
+                  x: 90
+                  text_font: f18
+                  text_color: c_muted
+                  text: ""
+              - label:
+                  align: RIGHT_MID
+                  x: -76
                   text_font: i32
                   text_color: c_ok
                   text: $ic_battery
               - label:
-                  id: ${uid}_bat_lbl
-                  align: TOP_RIGHT
-                  y: 14
+                  id: vac_bat_lbl
+                  align: RIGHT_MID
                   text_font: f28
                   text: "--%"
-              - button:
-                  align: BOTTOM_LEFT
-                  width: 230
-                  height: 80
-                  on_click:
-                    - homeassistant.action:
-                        action: vacuum.start
-                        data: { entity_id: "${entity}" }
-                  widgets:
-                    - label: { align: CENTER, text_font: f22, text: "Start" }
-              - button:
-                  align: BOTTOM_MID
-                  width: 230
-                  height: 80
-                  on_click:
-                    - homeassistant.action:
-                        action: vacuum.pause
-                        data: { entity_id: "${entity}" }
-                  widgets:
-                    - label: { align: CENTER, text_font: f22, text: "Pauza" }
-              - button:
-                  align: BOTTOM_RIGHT
-                  width: 230
-                  height: 80
-                  on_click:
-                    - homeassistant.action:
-                        action: vacuum.return_to_base
-                        data: { entity_id: "${entity}" }
-                  widgets:
-                    - label: { align: CENTER, text_font: f22, text: "Do stacji" }
+        - label:
+            styles: title_style
+            text_font: f22
+            text: "Pomieszczenia – zaznacz, które sprzątać"
 
     - id: !extend page_home
       widgets:
         - button:
-            id: ${uid}_alert
+            id: vac_home_tile
+            styles: tile_style
+            hidden: true
+            on_click:
+              - script.execute: { id: goto_page, idx: 3 }
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text_font: i32
+                  text_color: c_accent
+                  text: $ic_robot_vacuum
+              - label:
+                  align: BOTTOM_LEFT
+                  y: -20
+                  width: 150
+                  long_mode: DOT
+                  text_font: f22
+                  text: "${name}"
+              - label:
+                  id: vac_home_sub
+                  align: BOTTOM_LEFT
+                  width: 150
+                  long_mode: DOT
+                  text_font: f14
+                  text_color: c_muted
+                  text: ""
+        - button:
+            id: vac_alert
             styles: alert_style
             hidden: true
             on_click:

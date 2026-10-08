@@ -72,6 +72,12 @@ inline std::string pl(const std::string &state) {
       {"actionrequired", "Wymaga akcji"}, {"heat", "Grzanie"}, {"heating", "Grzeje"}, {"cool", "Chłodzenie"},
       {"cooling", "Chłodzi"}, {"auto", "Auto"}, {"playing", "Odtwarza"}, {"buffering", "Buforuje"},
       {"standby", "Czuwanie"}, {"rainy", "Deszcz"}, {"pouring", "Ulewa"}, {"sunny", "Słonecznie"},
+      {"sweeping", "Odkurza"}, {"mopping", "Mopuje"}, {"sweeping_and_mopping", "Odkurza i mopuje"},
+      {"mopping_after_sweeping", "Mop po odkurzaniu"}, {"charging_completed", "Naładowany"},
+      {"washing", "Myje mop"}, {"drying", "Suszy mop"}, {"building", "Mapuje"}, {"sleeping", "Uśpiony"},
+      {"returning_to_wash", "Wraca umyć mop"}, {"remote_control", "Sterowanie ręczne"},
+      {"end_of_cycle", "Zakończono"}, {"ready_to_start", "Gotowa do startu"},
+      {"program_not_selected", "Brak programu"}, {"unplugged", "Niepodłączony"}, {"charging_finished", "Naładowany"},
       {"cloudy", "Pochmurno"}, {"partlycloudy", "Częściowe zachm."}, {"clear-night", "Pogodna noc"},
       {"fog", "Mgła"}, {"snowy", "Śnieg"}, {"lightning-rainy", "Burza"}, {"windy", "Wietrznie"},
   };
@@ -98,6 +104,26 @@ inline void show(lv_obj_t *o, bool visible) {
 
 inline void set_bg(lv_obj_t *o, uint32_t color) { lv_obj_set_style_bg_color(o, lv_color_hex(color), 0); }
 inline void set_text_color(lv_obj_t *o, uint32_t color) { lv_obj_set_style_text_color(o, lv_color_hex(color), 0); }
+
+// Zaznaczenie przycisku opcji (wybrana = bursztynowa ramka)
+inline void mark(lv_obj_t *o, bool on) {
+  lv_obj_set_style_bg_color(o, lv_color_hex(on ? 0x5A4410 : 0x262B35), 0);
+  lv_obj_set_style_border_color(o, lv_color_hex(0xFFB300), 0);
+  lv_obj_set_style_border_width(o, on ? 3 : 0, 0);
+}
+
+// Wiersz opcji: zaznacza przycisk, którego opcja == state; przyciemnia wiersz, gdy select niedostępny
+inline void mark_row(lv_obj_t *row, lv_obj_t *const *btns, const char *const *opts, int n, const std::string &state) {
+  bool avail = !(state == "unavailable" || state == "unknown" || state.empty());
+  lv_obj_set_style_opa(row, avail ? LV_OPA_COVER : LV_OPA_40, 0);
+  for (int i = 0; i < n; i++) mark(btns[i], avail && state == opts[i]);
+}
+
+inline void enable(lv_obj_t *o, bool on) {
+  if (on) lv_obj_remove_state(o, LV_STATE_DISABLED);
+  else lv_obj_add_state(o, LV_STATE_DISABLED);
+  lv_obj_set_style_opa(o, on ? LV_OPA_COVER : LV_OPA_40, 0);
+}
 
 // Liczy widoczne kafelki na stronie (pomija obiekty wskazane jako stałe)
 inline int visible_children(lv_obj_t *parent, lv_obj_t *skip1, lv_obj_t *skip2) {

@@ -1,0 +1,31 @@
+{#-
+  Panel Z2Z – szczegóły odkurzacza Dreame (integracja Tasshack/dreame-vacuum).
+  Wklej w: Narzędzia deweloperskie → Szablon. Wynik odeślij Claude'owi.
+  Zmień `v`, jeśli Twój odkurzacz ma inne entity_id.
+-#}
+{%- set v = 'vacuum.x40_ultra_complete' -%}
+{%- set prefix = v.split('.')[1] -%}
+# Odkurzacz {{ v }} = {{ states(v) }}
+
+## Pomieszczenia (atrybut rooms) – id = numer segmentu do sprzątania
+{%- set rooms = state_attr(v, 'rooms') %}
+{%- if rooms is mapping %}
+{%- for map_name, list in rooms.items() %}
+### mapa: {{ map_name }}
+{%- for r in list %}
+- id={{ r.id }} | {{ r.name }} | ikona={{ r.icon }}
+{%- endfor %}
+{%- endfor %}
+{%- else %}
+(brak atrybutu rooms – surowo: {{ rooms }})
+{%- endif %}
+
+## Atrybuty encji vacuum
+{%- for k, val in states[v].attributes.items() if k not in ['rooms', 'entity_picture'] %}
+- {{ k }}: {{ val | string | truncate(160) }}
+{%- endfor %}
+
+## Encje odkurzacza (select / button / sensor / number)
+{%- for s in states if prefix in s.entity_id and s.domain in ['select', 'button', 'sensor', 'number', 'binary_sensor', 'camera'] %}
+- {{ s.entity_id }} | {{ s.name }} | {{ s.state }}{% if s.attributes.options is defined %} | opcje: {{ s.attributes.options | join(', ') }}{% endif %}
+{%- endfor %}

@@ -12,7 +12,9 @@ Firmware ESPHome + LVGL dla dotykowego panelu 7" (800×480).
      Gdy wszystko zgaśnie – kafelki znikają. Dotknięcie kafelka = wyłącz.
   2. **Ogrzewanie** – `climate.*` albo setpoint `input_number/number` + czujnik, przyciski ±
   3. **Samochód** – karty z wartościami/stanami + alerty
-  4. **Odkurzacz** – stan, bateria, Start / Pauza / Do stacji
+  4. **Odkurzacz** (Dreame) – kafelki pomieszczeń do zaznaczenia, CleanGenius, tryb, moc ssania,
+     wilgotność mopa, liczba przejść; Sprzątaj wybrane / Pauza / Wznów / Stop / Do stacji /
+     Umyj i susz mop / Mapowanie (z potwierdzeniem). Nigdy nie startuje całego mieszkania.
   5. **Zmywarka** – stan, pozostały czas, drzwi
   6. **Rośliny** – wilgotność gleby z paskiem i progiem
 - **Wygaszanie ekranu** i **powrót na pulpit główny** po bezczynności; nowy alert budzi ekran.
@@ -31,19 +33,40 @@ Firmware ESPHome + LVGL dla dotykowego panelu 7" (800×480).
 | `core/*.yaml` | Belka, pulpity, motyw, ustawienia, OTA, nakładki |
 | `hardware/…yaml` | Piny wyświetlacza, dotyk GT911, ekspander CH422G |
 | `tools/ha_entities.jinja` | Zapytanie do HA wyciągające potrzebne encje |
+| `tools/ha_vacuum.jinja` | Zapytanie: pomieszczenia (ID segmentów) i opcje odkurzacza Dreame |
 | `tools/ha_export.py` | Alternatywa: pełny eksport przez REST API |
 | `.github/workflows/build.yml` | Build → GitHub Pages (OTA + instalator) |
 
 ## Pierwsze uruchomienie
 
 ### 1. Sekrety w GitHub (raz)
-`Settings → Secrets and variables → Actions → New repository secret`:
 
-| Nazwa | Wartość |
+**a) Wygeneruj klucz API** (losowe 32 bajty w base64, np. `kJ3x…Q=`), jednym ze sposobów:
+
+- **przeglądarka:** https://esphome.io/components/api/ – w sekcji *encryption → key* strona
+  pokazuje gotowy, losowy klucz (przy każdym odświeżeniu nowy),
+- **Windows (PowerShell):**
+  ```powershell
+  $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
+  ```
+- **Linux / macOS / terminal w HA (dodatek „Terminal & SSH”):** `openssl rand -base64 32`
+
+Zapisz go np. w menedżerze haseł – wpiszesz go jeszcze raz w HA przy dodawaniu panelu.
+`WEB_PASSWORD` i `AP_PASSWORD` po prostu wymyślasz (AP: min. 8 znaków).
+
+**b) Wpisz sekrety w repozytorium:**
+
+1. https://github.com/hamciuch/z2z-LCG-7 → zakładka **Settings** (ustawienia *repozytorium*, nie konta).
+2. W lewym menu: **Secrets and variables → Actions**.
+3. Zielony przycisk **New repository secret** → *Name* i *Secret* → **Add secret**. Trzy razy:
+
+| Name | Secret |
 |---|---|
-| `API_ENCRYPTION_KEY` | wynik `openssl rand -base64 32` (zachowaj – poda go HA przy dodawaniu) |
+| `API_ENCRYPTION_KEY` | wygenerowany klucz |
 | `WEB_PASSWORD` | hasło do strony WWW panelu (login `admin`) |
-| `AP_PASSWORD` | hasło AP do konfiguracji WiFi, min. 8 znaków |
+| `AP_PASSWORD` | hasło sieci „Panel Z2Z Setup”, min. 8 znaków |
+
+4. Zakładka **Actions** → ostatni build → **Re-run all jobs** (albo dowolny push).
 
 Bez sekretów workflow tylko sprawdza, czy firmware się kompiluje, i niczego nie publikuje.
 
@@ -96,8 +119,8 @@ packages:
 | `alert_threshold.yaml` | Teraz | wartość `below`/`above` progu (próg zmienisz w HA/WWW) |
 | `alert_state.yaml` | Teraz | stan na liście `states` |
 | `plant.yaml` | Rośliny + alert | wilgotność < progu |
-| `dishwasher.yaml` | Zmywarka + alert | koniec programu, do otwarcia drzwi |
-| `vacuum.yaml` | Odkurzacz + alert | błąd odkurzacza |
+| `dishwasher.yaml` | Zmywarka + alert | `done_entity` → koniec programu, do otwarcia drzwi |
+| `vacuum.yaml` → `vacuum_room.yaml` ×N → `vacuum_controls.yaml` | Odkurzacz (Dreame) | status, kafelki pomieszczeń, opcje, sterowanie, mapowanie; alert przy błędzie |
 | `climate.yaml` / `setpoint.yaml` | Ogrzewanie | zawsze |
 | `value_card.yaml` / `text_card.yaml` | dowolny pulpit (`page:`) | zawsze |
 | `person.yaml` | belka (`slot` 0–3) | zawsze |
