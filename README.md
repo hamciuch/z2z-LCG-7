@@ -5,8 +5,8 @@ Firmware ESPHome + LVGL dla dotykowego panelu 7" (800×480).
 - **Belka główna** (zawsze na wierzchu): zegar i data, domownicy w domu/poza domem,
   temperatura na balkonie, czy pada deszcz, status serwera, połączenie z HA/WiFi.
   Dotknięcie zegara → panel ustawień (wersja, IP, aktualizacja, restart).
-- **Pulpity przewijane gestem** (animacja przesuwania), na dole kropki i nazwa pulpitu.
-  Każdy pulpit mieści się w całości na ekranie (siatka 780×380 px):
+- **Pulpity wybierane dolnym paskiem ikon** (Teraz, Światła, Ogrzewanie, Auto, Odkurzacz, AGD, Rośliny).
+  Każdy pulpit mieści się w całości na ekranie (siatka 780×350 px):
   0. **Teraz** – tylko to, co *włączone* (światła, TV, PS5, ekspres, czajnik, okap), drukarka 3D
      tylko w trakcie druku (postęp i godzina końca), pralka/suszarka gdy pracują,
      odkurzacz gdy sprząta oraz **alerty** (podlej roślinę, wyjmij naczynia / pranie, sól,

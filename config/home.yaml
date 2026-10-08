@@ -124,7 +124,7 @@ packages:
       message: "Auto: mało paliwa"
       icon: $ic_gas_station
       mode: below
-      threshold: 15
+      threshold: 20
       hysteresis: 3
       unit: "%"
       decimals: 0
@@ -169,11 +169,11 @@ packages:
     vars: { uid: suszarka, name: "Suszarka", icon: $ic_washing_machine, entity: sensor.grillplats_plug_moc, threshold: 5, finish_min: 3, finish_message: "Suszarka skończyła – wyjmij pranie" }
 
   # ── Pulpit 6: ROŚLINY (alert "Podlej" poniżej progu; progi zmienisz w HA/WWW)
-  p_kaktus:   !include { file: ../tiles/plant.yaml, vars: { uid: p_kaktus,   name: "Kaktus",               entity: sensor.sn_kaktus_soil_moisture,                    threshold: 8 } }
-  p_paprotka: !include { file: ../tiles/plant.yaml, vars: { uid: p_paprotka, name: "Paprotka",             entity: sensor.sn_paprotka_soil_moisture,                  threshold: 40 } }
-  p_sans_d:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_d,   name: "Sansewieria duża",     entity: sensor.sn_sansewieria_gwinejska_duza_soil_moisture, threshold: 15 } }
-  p_sans_m:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_m,   name: "Sansewieria mała",     entity: sensor.sn_sansewieria_gwinejska_mala_soil_moisture, threshold: 15 } }
-  p_sans_o:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_o,   name: "Sansewieria okno",     entity: sensor.sn_sansewieria_gwinejska_okno_soil_moisture, threshold: 15 } }
-  p_filo:     !include { file: ../tiles/plant.yaml, vars: { uid: p_filo,     name: "Filodendron",          entity: sensor.sn_filodendron_soil_moisture,               threshold: 30 } }
-  p_hedera:   !include { file: ../tiles/plant.yaml, vars: { uid: p_hedera,   name: "Hedera Eva",           entity: sensor.sn_hedera_eva_soil_moisture,                threshold: 25 } }
+  p_kaktus:   !include { file: ../tiles/plant.yaml, vars: { uid: p_kaktus,   name: "Kaktus",               entity: sensor.sn_kaktus_soil_moisture,                    threshold: 15 } }
+  p_paprotka: !include { file: ../tiles/plant.yaml, vars: { uid: p_paprotka, name: "Paprotka",             entity: sensor.sn_paprotka_soil_moisture,                  threshold: 60 } }
+  p_sans_d:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_d,   name: "Sansewieria duża",     entity: sensor.sn_sansewieria_gwinejska_duza_soil_moisture, threshold: 30 } }
+  p_sans_m:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_m,   name: "Sansewieria mała",     entity: sensor.sn_sansewieria_gwinejska_mala_soil_moisture, threshold: 30 } }
+  p_sans_o:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_o,   name: "Sansewieria okno",     entity: sensor.sn_sansewieria_gwinejska_okno_soil_moisture, threshold: 30 } }
+  p_filo:     !include { file: ../tiles/plant.yaml, vars: { uid: p_filo,     name: "Filodendron",          entity: sensor.sn_filodendron_soil_moisture,               threshold: 40 } }
+  p_hedera:   !include { file: ../tiles/plant.yaml, vars: { uid: p_hedera,   name: "Hedera Eva",           entity: sensor.sn_hedera_eva_soil_moisture,                threshold: 40 } }
   p_ficus:    !include { file: ../tiles/plant.yaml, vars: { uid: p_ficus,    name: "Ficus",                entity: sensor.sn_hedera_eva_tv_soil_moisture,             threshold: 30 } }

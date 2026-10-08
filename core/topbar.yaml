@@ -84,31 +84,128 @@ lvgl:
                 text_color: c_muted
                 text: $ic_home_assistant
 
-      # pasek na dole: kropki nawigacji (dotknięcie = przejście) + nazwa pulpitu
+      # Dolny pasek nawigacji: ikona = pulpit (zamiast przewijania gestem)
       - obj:
-          id: dots
+          id: navbar
           align: BOTTOM_MID
-          y: -4
-          width: SIZE_CONTENT
-          height: 24
-          bg_opa: TRANSP
+          width: 800
+          height: 56
+          radius: 0
+          bg_color: c_card
+          bg_opa: COVER
           border_width: 0
-          pad_all: 2
+          pad_all: 4
           scrollable: false
           layout:
             type: flex
             flex_flow: ROW
+            flex_align_main: SPACE_EVENLY
             flex_align_cross: CENTER
-            pad_column: 12
           widgets:
-            - obj: { id: dot0, width: 12, height: 12, radius: 6, border_width: 0, bg_color: c_accent, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 0 } }] }
-            - obj: { id: dot1, hidden: "${hide_page_lights}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 1 } }] }
-            - obj: { id: dot2, hidden: "${hide_page_heating}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 2 } }] }
-            - obj: { id: dot3, hidden: "${hide_page_car}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 3 } }] }
-            - obj: { id: dot4, hidden: "${hide_page_vacuum}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 4 } }] }
-            - obj: { id: dot5, hidden: "${hide_page_appliances}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 5 } }] }
-            - obj: { id: dot6, hidden: "${hide_page_plants}", width: 12, height: 12, radius: 6, border_width: 0, bg_color: 0x3A4150, ext_click_area: 12, on_click: [{ script.execute: { id: goto_page, idx: 6 } }] }
-            - label: { id: page_name, text_font: f14, text_color: c_muted, text: "Teraz" }
+            - button:
+                id: nav0
+                width: 104
+                height: 48
+                radius: 12
+                bg_color: 0x3A2E10
+                bg_opa: COVER
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: { id: goto_page, idx: 0 }
+                widgets:
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_accent, text: $ic_home }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_text, text: "Teraz" }
+            - button:
+                id: nav1
+                hidden: "${hide_page_lights}"
+                width: 104
+                height: 48
+                radius: 12
+                bg_color: 0x3A2E10
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: { id: goto_page, idx: 1 }
+                widgets:
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_lightbulb }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Światła" }
+            - button:
+                id: nav2
+                hidden: "${hide_page_heating}"
+                width: 104
+                height: 48
+                radius: 12
+                bg_color: 0x3A2E10
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: { id: goto_page, idx: 2 }
+                widgets:
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_radiator }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Ogrzewanie" }
+            - button:
+                id: nav3
+                hidden: "${hide_page_car}"
+                width: 104
+                height: 48
+                radius: 12
+                bg_color: 0x3A2E10
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: { id: goto_page, idx: 3 }
+                widgets:
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_car }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Auto" }
+            - button:
+                id: nav4
+                hidden: "${hide_page_vacuum}"
+                width: 104
+                height: 48
+                radius: 12
+                bg_color: 0x3A2E10
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: { id: goto_page, idx: 4 }
+                widgets:
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_robot_vacuum }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Odkurzacz" }
+            - button:
+                id: nav5
+                hidden: "${hide_page_appliances}"
+                width: 104
+                height: 48
+                radius: 12
+                bg_color: 0x3A2E10
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: { id: goto_page, idx: 5 }
+                widgets:
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_washing_machine }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "AGD" }
+            - button:
+                id: nav6
+                hidden: "${hide_page_plants}"
+                width: 104
+                height: 48
+                radius: 12
+                bg_color: 0x3A2E10
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: { id: goto_page, idx: 6 }
+                widgets:
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_sprout }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Rośliny" }
 
 sensor:
   # Serwer: działa, gdy pobór mocy z gniazdka > server_power_min [W]

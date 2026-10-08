@@ -1,7 +1,7 @@
 # Ogrzewanie – encja climate.* (głowica) + czujnik temperatury w pokoju (Zigbee).
 # Duża liczba = temperatura z czujnika w pokoju, mała = to, co mierzy głowica.
 # Zadana: +/- (krok 0,5°), wysyłana do HA po 1,5 s od ostatniego dotknięcia.
-# Karta 385×184 – 4 pokoje mieszczą się 2×2 na ekranie.
+# Karta 385×170 – 4 pokoje mieszczą się 2×2 na ekranie.
 # vars: uid, entity, name, room_temp_entity
 globals:
   - id: ${uid}_sp
@@ -84,7 +84,7 @@ lvgl:
         - obj:
             styles: card_style
             width: 385
-            height: 184
+            height: 170
             scrollable: false
             widgets:
               - label:

@@ -1,6 +1,6 @@
 # Pulpit "Światła": przełącznik światła (light.* albo switch.*).
 # Zapalone = bursztynowy kafelek, dotknięcie = przełącz (homeassistant.toggle).
-# Kafelek 148×112 – 5 w rzędzie, 15 mieści się na ekranie.
+# Kafelek 148×112 – 5 w rzędzie, 15 mieści się (3×108 px) na ekranie.
 # vars: uid, entity, name, icon
 text_sensor:
   - platform: homeassistant
@@ -24,7 +24,7 @@ lvgl:
         - button:
             id: ${uid}_btn
             width: 148
-            height: 112
+            height: 108
             radius: 16
             bg_color: c_card
             border_color: c_accent

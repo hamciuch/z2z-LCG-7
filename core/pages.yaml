@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Pulpity (strony LVGL), przewijanie gestem z animacją, wygaszanie ekranu.
+# Pulpity (strony LVGL), nawigacja dolnym paskiem ikon, wygaszanie ekranu.
 #   0 Teraz · 1 Światła · 2 Ogrzewanie · 3 Samochód · 4 Odkurzacz · 5 AGD · 6 Rośliny
 # Kafelki z tiles/*.yaml dopisują się do stron przez `!extend page_xxx`.
 # Numery pulpitów używa "goto" w alertach i akcja API show_page.
@@ -26,7 +26,7 @@ lvgl:
               - lvgl.page.show:
                   id: page_home
                   animation: FADE_IN
-                  time: 300ms
+                  time: 200ms
     # Wygaszenie ekranu (brak dotyku i brak ruchu z czujników)
     - timeout: !lambda |-
         float m = id(screen_timeout_min).state;
@@ -54,16 +54,6 @@ lvgl:
         flex_align_track: START
         pad_row: 10
         pad_column: 10
-      on_swipe_left: &swipe_left
-        - lambda: lv_indev_wait_release(lv_indev_active());
-        - lvgl.page.next:
-            animation: MOVE_LEFT
-            time: 300ms
-      on_swipe_right: &swipe_right
-        - lambda: lv_indev_wait_release(lv_indev_active());
-        - lvgl.page.previous:
-            animation: MOVE_RIGHT
-            time: 300ms
       on_load:
         - script.execute: { id: dots_set, idx: 0 }
       widgets:
@@ -77,8 +67,6 @@ lvgl:
       styles: page_style
       scroll_dir: VER
       layout: *flex
-      on_swipe_left: *swipe_left
-      on_swipe_right: *swipe_right
       on_load:
         - script.execute: { id: dots_set, idx: 1 }
 
@@ -87,8 +75,6 @@ lvgl:
       styles: page_style
       scroll_dir: VER
       layout: *flex
-      on_swipe_left: *swipe_left
-      on_swipe_right: *swipe_right
       on_load:
         - script.execute: { id: dots_set, idx: 2 }
 
@@ -97,8 +83,6 @@ lvgl:
       styles: page_style
       scroll_dir: VER
       layout: *flex
-      on_swipe_left: *swipe_left
-      on_swipe_right: *swipe_right
       on_load:
         - script.execute: { id: dots_set, idx: 3 }
 
@@ -107,8 +91,6 @@ lvgl:
       styles: page_style
       scroll_dir: VER
       layout: *flex
-      on_swipe_left: *swipe_left
-      on_swipe_right: *swipe_right
       on_load:
         - script.execute: { id: dots_set, idx: 4 }
 
@@ -117,8 +99,6 @@ lvgl:
       styles: page_style
       scroll_dir: VER
       layout: *flex
-      on_swipe_left: *swipe_left
-      on_swipe_right: *swipe_right
       on_load:
         - script.execute: { id: dots_set, idx: 5 }
 
@@ -127,8 +107,6 @@ lvgl:
       styles: page_style
       scroll_dir: VER
       layout: *flex
-      on_swipe_left: *swipe_left
-      on_swipe_right: *swipe_right
       on_load:
         - script.execute: { id: dots_set, idx: 6 }
 
@@ -156,17 +134,20 @@ script:
             - lvgl.widget.redraw:
       - light.turn_on: backlight
 
-  # Kropki nawigacji + nazwa pulpitu
+  # Dolny pasek: podświetla ikonę aktywnego pulpitu
   - id: dots_set
     parameters:
       idx: int
     then:
       - lambda: |-
-          lv_obj_t *d[] = {id(dot0), id(dot1), id(dot2), id(dot3), id(dot4), id(dot5), id(dot6)};
-          static const char *const N[] = {"Teraz", "Światła", "Ogrzewanie", "Samochód", "Odkurzacz", "AGD", "Rośliny"};
-          for (int i = 0; i < 7; i++)
-            z2z::set_bg(d[i], i == idx ? z2z::C_ACCENT : z2z::C_DOT_OFF);
-          if (idx >= 0 && idx < 7) lv_label_set_text(id(page_name), N[idx]);
+          lv_obj_t *n[] = {id(nav0), id(nav1), id(nav2), id(nav3), id(nav4), id(nav5), id(nav6)};
+          for (int i = 0; i < 7; i++) {
+            bool on = i == idx;
+            lv_obj_set_style_bg_opa(n[i], on ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
+            lv_obj_t *ico = lv_obj_get_child(n[i], 0), *txt = lv_obj_get_child(n[i], 1);
+            z2z::set_text_color(ico, on ? z2z::C_ACCENT : z2z::C_MUTED);
+            z2z::set_text_color(txt, on ? z2z::C_TEXT : z2z::C_MUTED);
+          }
 
   # Przejście do pulpitu po numerze (alerty, akcja API "show_page")
   - id: goto_page
