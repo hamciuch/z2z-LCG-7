@@ -5,20 +5,23 @@ Firmware ESPHome + LVGL dla dotykowego panelu 7" (800×480).
 - **Belka główna** (zawsze na wierzchu): zegar i data, domownicy w domu/poza domem,
   temperatura na balkonie, czy pada deszcz, status serwera, połączenie z HA/WiFi.
   Dotknięcie zegara → panel ustawień (wersja, IP, aktualizacja, restart).
-- **Pulpity wybierane dolnym paskiem ikon** (Teraz, Światła, Ogrzewanie, Auto, Odkurzacz, AGD, Rośliny).
+- **Pulpity wybierane dolnym paskiem ikon** (Teraz, Światła, Gniazdka, Ogrzewanie, Auto, Odkurzacz, AGD, Rośliny).
   Każdy pulpit mieści się w całości na ekranie (siatka 780×350 px):
   0. **Teraz** – tylko to, co *włączone* (światła, TV, PS5, ekspres, czajnik, okap), drukarka 3D
      tylko w trakcie druku (postęp i godzina końca), pralka/suszarka gdy pracują,
      odkurzacz gdy sprząta oraz **alerty** (podlej roślinę, wyjmij naczynia / pranie, sól,
      nabłyszczacz, auto otwarte, mało paliwa, błąd odkurzacza). Dotknięcie kafelka = wyłącz.
-  1. **Światła** – wszystkie światła, dotknięcie = przełącz
-  2. **Ogrzewanie** – temperatura z czujnika Zigbee w pokoju + głowica, zadana ±
-  3. **Samochód** – paliwo, zasięgi, ładowanie, zamek, temperatura
-  4. **Odkurzacz** (Dreame) – kafelki pomieszczeń, Sprzątaj wybrane / Pauza / Wznów / Stop /
+  1. **Światła** – wszystkie światła (z girlandą), dotknięcie = przełącz
+  2. **Gniazdka** – 23 gniazdka/Tasmoty z mocą; serwer tylko podgląd, pralka/suszarka/
+     drukarka 3D/komputery/PS5 pytają przed wyłączeniem
+  3. **Ogrzewanie** – temperatura z czujnika Zigbee w pokoju + głowica, zadana ± i szybkie 25°
+  4. **Auto** – paliwo, zasięgi, średnie spalanie, wnętrze, ładowanie, zamek,
+     klimatyzacja na postoju, grzanie foteli kierowcy i pasażera
+  5. **Odkurzacz** (Dreame) – kafelki pomieszczeń, Sprzątaj wybrane / Pauza / Wznów / Stop /
      Do stacji; okno opcji: CleanGenius, tryb, moc, mop, przejścia, mycie/suszenie mopa, mapowanie.
      Nigdy nie startuje całego mieszkania.
-  5. **AGD** – zmywarka (stan, faza, pozostały czas, drzwi), pralka i suszarka wg poboru mocy
-  6. **Rośliny** – wilgotność gleby z paskiem i progiem
+  6. **AGD** – zmywarka (stan, faza, pozostały czas, drzwi), pralka i suszarka wg poboru mocy
+  7. **Rośliny** – wilgotność gleby z paskiem i progiem
 - **Wygaszanie ekranu** po 10 min bez dotyku i bez ruchu (czujniki ruchu Satel budzą ekran),
   powrót na pulpit główny po bezczynności; nowy alert też budzi ekran.
 - **OTA z GitHub**: GitHub Actions buduje firmware i publikuje go na GitHub Pages
@@ -126,6 +129,8 @@ packages:
 | `vacuum.yaml` → `vacuum_room.yaml` ×N → `vacuum_controls.yaml` | Odkurzacz (Dreame) | status, kafelki pomieszczeń, opcje, sterowanie, mapowanie; alert przy błędzie |
 | `climate.yaml` | Ogrzewanie | zawsze (głowica + czujnik w pokoju) |
 | `light_toggle.yaml` | Światła | zawsze, dotknięcie = przełącz |
+| `socket.yaml` | Gniazdka | zawsze; mode: toggle / confirm / readonly |
+| `toggle_card.yaml` | dowolny (`page:`) | przełącznik z dodatkową wartością (np. klima auta) |
 | `appliance_power.yaml` | AGD + Teraz | pracuje wg mocy; alert po zakończeniu |
 | `printer.yaml` | Teraz | tylko podczas druku |
 | `motion_wake.yaml` | – | ruch budzi ekran |

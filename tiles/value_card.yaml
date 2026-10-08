@@ -16,26 +16,26 @@ lvgl:
       widgets:
         - obj:
             styles: card_style
-            width: 253
+            width: 148
             height: 150
             scrollable: false
             widgets:
               - label:
                   align: TOP_LEFT
-                  text_font: i32
+                  text_font: i24
                   text_color: c_accent
                   text: "${icon}"
               - label:
                   align: TOP_LEFT
-                  x: 42
-                  y: 4
-                  width: 190
+                  y: 32
+                  width: 126
+                  height: 20
                   long_mode: DOT
-                  text_font: f18
+                  text_font: f14
                   text_color: c_muted
                   text: "${name}"
               - label:
                   id: ${uid}_lbl
                   align: BOTTOM_LEFT
-                  text_font: f40
+                  text_font: f28
                   text: "--"

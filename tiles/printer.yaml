@@ -1,8 +1,8 @@
 # Drukarka 3D Bambu Lab (integracja ha-bambulab) – kafelek na "Teraz" TYLKO podczas druku:
-# nazwa zadania, postęp z paskiem, przewidywana godzina końca i pozostały czas.
+# postęp z paskiem, przewidywana godzina końca i pozostały czas.
 # Gdy nie drukuje – kafelka nie ma.
 # Godzinę końca bierze z encji "Czas zakończenia" (znacznik czasu), pozostały czas liczy sam.
-# vars: uid, name, status_entity, progress_entity, end_entity (timestamp), task_entity,
+# vars: uid, name, status_entity, progress_entity, end_entity (timestamp),
 #       printing_states (lista po przecinku)
 text_sensor:
   - platform: homeassistant
@@ -17,15 +17,6 @@ text_sensor:
     internal: true
     on_value:
       - script.execute: ${uid}_refresh
-  - platform: homeassistant
-    id: ${uid}_task
-    entity_id: ${task_entity}
-    internal: true
-    on_value:
-      - lvgl.label.update:
-          id: ${uid}_task_lbl
-          text: !lambda |-
-            return (x == "unknown" || x == "unavailable") ? std::string("") : x;
 
 sensor:
   - platform: homeassistant
@@ -95,20 +86,11 @@ lvgl:
                   text_color: c_accent
                   text: ""
               - label:
-                  id: ${uid}_task_lbl
-                  align: TOP_LEFT
-                  x: 42
-                  y: 22
-                  width: 180
-                  long_mode: DOT
-                  text_font: f14
-                  text_color: c_muted
-                  text: ""
-              - label:
                   id: ${uid}_info
                   align: BOTTOM_LEFT
                   y: -16
-                  width: 280
+                  width: 284
+                  height: 22
                   long_mode: DOT
                   text_font: f18
                   text: ""

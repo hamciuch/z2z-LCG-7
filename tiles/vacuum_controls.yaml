@@ -124,7 +124,7 @@ lvgl:
                                 rep: !lambda return std::to_string(id(vac_repeats));
                           - script.execute: vac_clear_selection
                   widgets:
-                    - label: { id: vac_start_lbl, align: CENTER, text_font: f18, text_align: CENTER, text: "Sprzątaj wybrane", text_color: 0x000000 }
+                    - label: { id: vac_start_lbl, align: CENTER, text_font: f18, text_align: CENTER, text: "Sprzątaj wybrane", text_color: 0xFFFFFF }
               - button:
                   id: vac_pause
                   width: 110
@@ -621,7 +621,7 @@ lvgl:
                             on_click:
                               - lvgl.widget.hide: vac_opts_popup
                             widgets:
-                              - label: { id: vac_close_lbl, align: CENTER, text_font: f18, text_align: CENTER, text: "Zamknij", text_color: 0x000000 }
+                              - label: { id: vac_close_lbl, align: CENTER, text_font: f18, text_align: CENTER, text: "Zamknij", text_color: 0xFFFFFF }
       - obj:
           id: vac_map_popup
           hidden: true

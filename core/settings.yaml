@@ -144,7 +144,7 @@ lvgl:
                         - update.perform:
                             id: fw_update
                       widgets:
-                        - label: { align: CENTER, text: "Zainstaluj\naktualizację", text_font: f18, text_align: CENTER, text_color: 0x000000 }
+                        - label: { align: CENTER, text: "Zainstaluj\naktualizację", text_font: f18, text_align: CENTER, text_color: 0xFFFFFF }
                   - button:
                       align: BOTTOM_RIGHT
                       width: 160

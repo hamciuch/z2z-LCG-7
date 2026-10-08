@@ -15,7 +15,7 @@ lvgl:
             border_width: 0
             checkable: true
             checked:
-              bg_color: 0x5A4410
+              bg_color: 0x1E3A66
               border_color: c_accent
               border_width: 3
             on_value:
@@ -35,5 +35,5 @@ lvgl:
                   x: 32
                   width: 136
                   long_mode: WRAP
-                  text_font: f18
+                  text_font: f16
                   text: "${name}"

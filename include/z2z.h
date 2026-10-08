@@ -11,15 +11,15 @@
 namespace z2z {
 
 // Kolory używane z lambd (muszą odpowiadać core/theme.yaml)
-static const uint32_t C_ACCENT = 0xFFB300;
-static const uint32_t C_DOT_OFF = 0x3A4150;
-static const uint32_t C_OK = 0x43A047;
-static const uint32_t C_WARN = 0xFF8F00;
-static const uint32_t C_ERR = 0xE53935;
-static const uint32_t C_MUTED = 0x8A94A6;
-static const uint32_t C_TEXT = 0xECEFF1;
-static const uint32_t C_HEAT = 0xFF7043;
-static const uint32_t C_COOL = 0x42A5F5;
+static const uint32_t C_ACCENT = 0x4C9EFF;
+static const uint32_t C_DOT_OFF = 0x2A3142;
+static const uint32_t C_OK = 0x34C77B;
+static const uint32_t C_WARN = 0xFF9F43;
+static const uint32_t C_ERR = 0xFF5C5C;
+static const uint32_t C_MUTED = 0x8691A6;
+static const uint32_t C_TEXT = 0xE8ECF2;
+static const uint32_t C_HEAT = 0xFF7A45;
+static const uint32_t C_COOL = 0x4C9EFF;
 
 inline std::string lower(const std::string &s) {
   std::string r = s;
@@ -107,8 +107,8 @@ inline void set_text_color(lv_obj_t *o, uint32_t color) { lv_obj_set_style_text_
 
 // Zaznaczenie przycisku opcji (wybrana = bursztynowa ramka)
 inline void mark(lv_obj_t *o, bool on) {
-  lv_obj_set_style_bg_color(o, lv_color_hex(on ? 0x5A4410 : 0x262B35), 0);
-  lv_obj_set_style_border_color(o, lv_color_hex(0xFFB300), 0);
+  lv_obj_set_style_bg_color(o, lv_color_hex(on ? 0x1E3A66 : 0x202736), 0);
+  lv_obj_set_style_border_color(o, lv_color_hex(0x4C9EFF), 0);
   lv_obj_set_style_border_width(o, on ? 3 : 0, 0);
 }
 

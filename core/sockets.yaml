@@ -1,0 +1,69 @@
+# Wspólne okno potwierdzenia dla pulpitu "Gniazdka" (tryb confirm w tiles/socket.yaml)
+globals:
+  - id: sock_pending
+    type: std::string
+
+lvgl:
+  top_layer:
+    widgets:
+      - obj:
+          id: sock_confirm
+          hidden: true
+          width: 100%
+          height: 100%
+          bg_color: 0x000000
+          bg_opa: 70%
+          border_width: 0
+          radius: 0
+          on_click:
+            - lvgl.widget.hide: sock_confirm
+          widgets:
+            - obj:
+                align: CENTER
+                width: 520
+                height: 200
+                styles: card_style
+                bg_color: c_card2
+                clickable: true
+                scrollable: false
+                widgets:
+                  - label:
+                      id: sock_confirm_lbl
+                      align: TOP_LEFT
+                      width: 490
+                      long_mode: WRAP
+                      text_font: f22
+                      text: ""
+                  - label:
+                      align: TOP_LEFT
+                      y: 64
+                      text_font: f16
+                      text_color: c_muted
+                      text: "Urządzenie może być w trakcie pracy."
+                  - button:
+                      align: BOTTOM_LEFT
+                      width: 230
+                      height: 60
+                      bg_color: c_err
+                      on_click:
+                        - lvgl.widget.hide: sock_confirm
+                        - if:
+                            condition:
+                              lambda: return !id(sock_pending).empty();
+                            then:
+                              - homeassistant.action:
+                                  action: homeassistant.turn_off
+                                  data_template:
+                                    entity_id: "{{ e }}"
+                                  variables:
+                                    e: !lambda return id(sock_pending);
+                      widgets:
+                        - label: { align: CENTER, text_font: f18, text: "Wyłącz", text_color: 0xFFFFFF }
+                  - button:
+                      align: BOTTOM_RIGHT
+                      width: 230
+                      height: 60
+                      on_click:
+                        - lvgl.widget.hide: sock_confirm
+                      widgets:
+                        - label: { align: CENTER, text_font: f18, text: "Anuluj" }

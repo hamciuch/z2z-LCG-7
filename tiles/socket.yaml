@@ -1,0 +1,87 @@
+# Pulpit "Gniazdka": gniazdko / Tasmota z poborem mocy.
+# Kafelek 121×80 – siatka 6×4 (24 sztuki) mieści się na ekranie.
+# mode:
+#   toggle   – dotknięcie włącza/wyłącza od razu
+#   confirm  – wyłączenie pyta "Na pewno wyłączyć?" (pralka, drukarka 3D, komputery…)
+#   readonly – tylko podgląd stanu i mocy (np. serwer), dotknięcie nic nie robi
+# vars: uid, name, icon, entity, power_entity, mode
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_s
+    entity_id: ${entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          bool on = z2z::is_active(x);
+          bool na = x == "unavailable" || x == "unknown";
+          lv_obj_set_style_bg_color(id(${uid}_btn), lv_color_hex(on ? 0x16294A : 0x161B26), 0);
+          lv_obj_set_style_border_width(id(${uid}_btn), on ? 2 : 0, 0);
+          z2z::set_text_color(id(${uid}_ico), on ? z2z::C_ACCENT : z2z::C_MUTED);
+          lv_obj_set_style_opa(id(${uid}_btn), na ? LV_OPA_50 : LV_OPA_COVER, 0);
+
+sensor:
+  - platform: homeassistant
+    id: ${uid}_p
+    entity_id: ${power_entity}
+    internal: true
+    on_value:
+      - lvgl.label.update:
+          id: ${uid}_pw
+          text: !lambda |-
+            if (isnan(x)) return std::string("");
+            return x >= 1000 ? z2z::fmt(x / 1000.0f, 1, " kW") : z2z::fmt(x, 0, " W");
+
+lvgl:
+  pages:
+    - id: !extend page_sockets
+      widgets:
+        - button:
+            id: ${uid}_btn
+            width: 121
+            height: 80
+            radius: 14
+            bg_color: c_card
+            border_color: c_accent
+            border_width: 0
+            pad_all: 8
+            on_click:
+              - lambda: |-
+                  std::string mode = "${mode}";
+                  if (mode == "readonly") return;
+                  bool on = z2z::is_active(id(${uid}_s).state);
+                  if (mode == "confirm" && on) {
+                    id(sock_pending) = "${entity}";
+                    lv_label_set_text_fmt(id(sock_confirm_lbl), "Na pewno wyłączyć: %s?", "${name}");
+                    z2z::show(id(sock_confirm), true);
+                    return;
+                  }
+                  id(sock_pending) = "";
+              - if:
+                  condition:
+                    lambda: return std::string("${mode}") == "toggle" || (std::string("${mode}") == "confirm" && !z2z::is_active(id(${uid}_s).state));
+                  then:
+                    - homeassistant.action:
+                        action: homeassistant.toggle
+                        data:
+                          entity_id: ${entity}
+            widgets:
+              - label:
+                  id: ${uid}_ico
+                  align: TOP_LEFT
+                  text_font: i24
+                  text_color: c_muted
+                  text: "${icon}"
+              - label:
+                  id: ${uid}_pw
+                  align: TOP_RIGHT
+                  y: 4
+                  text_font: f14
+                  text_color: c_muted
+                  text: ""
+              - label:
+                  align: BOTTOM_LEFT
+                  width: 105
+                  height: 18
+                  long_mode: DOT
+                  text_font: f14
+                  text: "${name}"

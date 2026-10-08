@@ -120,7 +120,7 @@ lvgl:
             styles: tile_style
             hidden: true
             on_click:
-              - script.execute: { id: goto_page, idx: 5 }
+              - script.execute: { id: goto_page, idx: 6 }
             widgets:
               - label:
                   align: TOP_LEFT
@@ -132,13 +132,15 @@ lvgl:
                   y: -18
                   width: 126
                   long_mode: DOT
-                  text_font: f18
+                  height: 20
+                  text_font: f16
                   text: "${name}"
               - label:
                   id: ${uid}_tsub
                   align: BOTTOM_LEFT
                   width: 126
                   long_mode: DOT
+                  height: 18
                   text_font: f14
                   text_color: c_muted
                   text: ""

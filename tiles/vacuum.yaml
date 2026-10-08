@@ -130,7 +130,7 @@ lvgl:
             styles: tile_style
             hidden: true
             on_click:
-              - script.execute: { id: goto_page, idx: 4 }
+              - script.execute: { id: goto_page, idx: 5 }
             widgets:
               - label:
                   align: TOP_LEFT
@@ -149,6 +149,7 @@ lvgl:
                   align: BOTTOM_LEFT
                   width: 150
                   long_mode: DOT
+                  height: 18
                   text_font: f14
                   text_color: c_muted
                   text: ""
@@ -157,7 +158,7 @@ lvgl:
             styles: alert_style
             hidden: true
             on_click:
-              - script.execute: { id: goto_page, idx: 4 }
+              - script.execute: { id: goto_page, idx: 5 }
             widgets:
               - label:
                   align: LEFT_MID

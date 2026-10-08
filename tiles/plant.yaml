@@ -42,7 +42,7 @@ script:
           lv_label_set_text(id(${uid}_aval), txt.c_str());
           lv_label_set_text_fmt(id(${uid}_thr_lbl), "próg %.0f%%", t);
           lv_bar_set_value(id(${uid}_bar), isnan(v) ? 0 : (int) v, LV_ANIM_ON);
-          lv_obj_set_style_bg_color(id(${uid}_bar), lv_color_hex(dry ? z2z::C_WARN : 0x29B6F6), LV_PART_INDICATOR);
+          lv_obj_set_style_bg_color(id(${uid}_bar), lv_color_hex(dry ? z2z::C_WARN : 0x38BDF8), LV_PART_INDICATOR);
           if (z2z::set_visible(id(${uid}_alert), dry)) id(wake_screen).execute();
       - script.execute: home_refresh
 
@@ -100,7 +100,7 @@ lvgl:
             styles: alert_style
             hidden: true
             on_click:
-              - script.execute: { id: goto_page, idx: 6 }
+              - script.execute: { id: goto_page, idx: 7 }
             widgets:
               - label:
                   align: LEFT_MID

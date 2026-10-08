@@ -1,6 +1,6 @@
 # Ogrzewanie – encja climate.* (głowica) + czujnik temperatury w pokoju (Zigbee).
 # Duża liczba = temperatura z czujnika w pokoju, mała = to, co mierzy głowica.
-# Zadana: +/- (krok 0,5°), wysyłana do HA po 1,5 s od ostatniego dotknięcia.
+# Zadana: +/- (krok 0,5°) albo szybki przycisk 25°, wysyłana do HA po 1,5 s od ostatniego dotknięcia.
 # Karta 385×170 – 4 pokoje mieszczą się 2×2 na ekranie.
 # vars: uid, entity, name, room_temp_entity
 globals:
@@ -122,9 +122,9 @@ lvgl:
                   text_color: c_muted
                   text: ""
               - label:
-                  align: TOP_RIGHT
+                  align: RIGHT_MID
                   x: -62
-                  y: 4
+                  y: -30
                   text_font: f14
                   text_color: c_muted
                   text: "zadana"
@@ -135,6 +135,19 @@ lvgl:
                   text_font: f28
                   text_color: c_accent
                   text: "--°"
+              - button:
+                  align: BOTTOM_RIGHT
+                  x: -58
+                  width: 64
+                  height: 40
+                  radius: 20
+                  on_click:
+                    - lambda: |-
+                        id(${uid}_sp) = 25.0f;
+                        lv_label_set_text(id(${uid}_sp_lbl), "25.0°");
+                    - script.execute: ${uid}_send
+                  widgets:
+                    - label: { align: CENTER, text_font: f16, text: "25°" }
               - button:
                   align: TOP_RIGHT
                   width: 50

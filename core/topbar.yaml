@@ -104,10 +104,10 @@ lvgl:
           widgets:
             - button:
                 id: nav0
-                width: 104
+                width: 94
                 height: 48
                 radius: 12
-                bg_color: 0x3A2E10
+                bg_color: 0x16294A
                 bg_opa: COVER
                 shadow_width: 0
                 pad_all: 0
@@ -119,10 +119,10 @@ lvgl:
             - button:
                 id: nav1
                 hidden: "${hide_page_lights}"
-                width: 104
+                width: 94
                 height: 48
                 radius: 12
-                bg_color: 0x3A2E10
+                bg_color: 0x16294A
                 bg_opa: TRANSP
                 shadow_width: 0
                 pad_all: 0
@@ -133,76 +133,91 @@ lvgl:
                   - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Światła" }
             - button:
                 id: nav2
-                hidden: "${hide_page_heating}"
-                width: 104
+                hidden: "${hide_page_sockets}"
+                width: 94
                 height: 48
                 radius: 12
-                bg_color: 0x3A2E10
+                bg_color: 0x16294A
                 bg_opa: TRANSP
                 shadow_width: 0
                 pad_all: 0
                 on_click:
                   - script.execute: { id: goto_page, idx: 2 }
                 widgets:
-                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_radiator }
-                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Ogrzewanie" }
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_socket }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Gniazdka" }
             - button:
                 id: nav3
-                hidden: "${hide_page_car}"
-                width: 104
+                hidden: "${hide_page_heating}"
+                width: 94
                 height: 48
                 radius: 12
-                bg_color: 0x3A2E10
+                bg_color: 0x16294A
                 bg_opa: TRANSP
                 shadow_width: 0
                 pad_all: 0
                 on_click:
                   - script.execute: { id: goto_page, idx: 3 }
                 widgets:
-                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_car }
-                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Auto" }
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_radiator }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Ogrzewanie" }
             - button:
                 id: nav4
-                hidden: "${hide_page_vacuum}"
-                width: 104
+                hidden: "${hide_page_car}"
+                width: 94
                 height: 48
                 radius: 12
-                bg_color: 0x3A2E10
+                bg_color: 0x16294A
                 bg_opa: TRANSP
                 shadow_width: 0
                 pad_all: 0
                 on_click:
                   - script.execute: { id: goto_page, idx: 4 }
                 widgets:
-                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_robot_vacuum }
-                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Odkurzacz" }
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_car }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Auto" }
             - button:
                 id: nav5
-                hidden: "${hide_page_appliances}"
-                width: 104
+                hidden: "${hide_page_vacuum}"
+                width: 94
                 height: 48
                 radius: 12
-                bg_color: 0x3A2E10
+                bg_color: 0x16294A
                 bg_opa: TRANSP
                 shadow_width: 0
                 pad_all: 0
                 on_click:
                   - script.execute: { id: goto_page, idx: 5 }
                 widgets:
-                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_washing_machine }
-                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "AGD" }
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_robot_vacuum }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Odkurzacz" }
             - button:
                 id: nav6
-                hidden: "${hide_page_plants}"
-                width: 104
+                hidden: "${hide_page_appliances}"
+                width: 94
                 height: 48
                 radius: 12
-                bg_color: 0x3A2E10
+                bg_color: 0x16294A
                 bg_opa: TRANSP
                 shadow_width: 0
                 pad_all: 0
                 on_click:
                   - script.execute: { id: goto_page, idx: 6 }
+                widgets:
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_washing_machine }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "AGD" }
+            - button:
+                id: nav7
+                hidden: "${hide_page_plants}"
+                width: 94
+                height: 48
+                radius: 12
+                bg_color: 0x16294A
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: { id: goto_page, idx: 7 }
                 widgets:
                   - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_sprout }
                   - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Rośliny" }
@@ -238,7 +253,7 @@ text_sensor:
       - lambda: |-
           bool rain = z2z::in_list(x, "${rain_states}");
           lv_label_set_text(id(ico_rain), rain ? "${ic_umbrella}" : "${ic_cloud}");
-          z2z::set_text_color(id(ico_rain), rain ? 0x29B6F6 : z2z::C_MUTED);
+          z2z::set_text_color(id(ico_rain), rain ? 0x38BDF8 : z2z::C_MUTED);
 script:
   - id: clock_refresh
     then:

@@ -9,8 +9,8 @@ text_sensor:
       - lambda: |-
           bool home = x == "home";
           lv_label_set_text(id(${uid}_ico), home ? "${ic_home_account}" : "${ic_account}");
-          z2z::set_text_color(id(${uid}_ico), home ? z2z::C_OK : 0x4A5263);
-          z2z::set_text_color(id(${uid}_name), home ? z2z::C_TEXT : 0x4A5263);
+          z2z::set_text_color(id(${uid}_ico), home ? z2z::C_OK : 0x4A5468);
+          z2z::set_text_color(id(${uid}_name), home ? z2z::C_TEXT : 0x4A5468);
 
 lvgl:
   top_layer:
@@ -31,7 +31,7 @@ lvgl:
                 align: TOP_MID
                 y: 2
                 text_font: i32
-                text_color: 0x4A5263
+                text_color: 0x4A5468
                 text: $ic_account
             - label:
                 id: ${uid}_name
@@ -41,5 +41,5 @@ lvgl:
                 long_mode: DOT
                 text_align: CENTER
                 text_font: f14
-                text_color: 0x4A5263
+                text_color: 0x4A5468
                 text: "${name}"

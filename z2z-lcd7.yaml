@@ -36,6 +36,7 @@ packages:
   theme: !include core/theme.yaml
   pages: !include core/pages.yaml
   topbar: !include core/topbar.yaml
+  sockets_core: !include core/sockets.yaml
   home: !include config/home.yaml
   settings: !include core/settings.yaml
   overlays: !include core/overlays.yaml

@@ -1,10 +1,9 @@
-# Pulpit "Światła": przełącznik światła (light.* albo switch.*).
-# Zapalone = bursztynowy kafelek, dotknięcie = przełącz (homeassistant.toggle).
-# Kafelek 148×112 – 5 w rzędzie, 15 mieści się (3×108 px) na ekranie.
-# vars: uid, entity, name, icon
+# Karta-przełącznik (148×150) na dowolny pulpit, np. klimatyzacja auta, grzanie foteli.
+# Dotknięcie = homeassistant.toggle. Pod nazwą: stan albo wartość z info_entity + info_suffix.
+# vars: uid, page, name, icon, entity, info_entity, info_suffix
 text_sensor:
   - platform: homeassistant
-    id: ${uid}_lt
+    id: ${uid}_s
     entity_id: ${entity}
     internal: true
     on_value:
@@ -14,17 +13,28 @@ text_sensor:
           lv_obj_set_style_bg_color(id(${uid}_btn), lv_color_hex(on ? 0x16294A : 0x161B26), 0);
           lv_obj_set_style_border_width(id(${uid}_btn), on ? 2 : 0, 0);
           z2z::set_text_color(id(${uid}_ico), on ? z2z::C_ACCENT : z2z::C_MUTED);
-          lv_label_set_text(id(${uid}_st), na ? "niedostępne" : (on ? "włączone" : "wyłączone"));
+          lv_label_set_text(id(${uid}_st), na ? "niedostępne" : (on ? "Włączone" : "Wyłączone"));
           lv_obj_set_style_opa(id(${uid}_btn), na ? LV_OPA_50 : LV_OPA_COVER, 0);
+  - platform: homeassistant
+    id: ${uid}_i
+    entity_id: ${info_entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          bool ok = !(x == "unavailable" || x == "unknown" || x.empty());
+          std::string v = x;
+          // "22.0" -> "22"
+          if (v.size() > 2 && v.substr(v.size() - 2) == ".0") v = v.substr(0, v.size() - 2);
+          lv_label_set_text(id(${uid}_info), ok ? (v + "${info_suffix}").c_str() : "");
 
 lvgl:
   pages:
-    - id: !extend page_lights
+    - id: !extend ${page}
       widgets:
         - button:
             id: ${uid}_btn
             width: 148
-            height: 108
+            height: 150
             radius: 16
             bg_color: c_card
             border_color: c_accent
@@ -39,20 +49,27 @@ lvgl:
               - label:
                   id: ${uid}_ico
                   align: TOP_LEFT
-                  text_font: i32
+                  text_font: i24
                   text_color: c_muted
                   text: "${icon}"
               - label:
-                  align: BOTTOM_LEFT
-                  y: -18
+                  id: ${uid}_info
+                  align: TOP_RIGHT
+                  y: 2
+                  text_font: f18
+                  text_color: c_accent
+                  text: ""
+              - label:
+                  align: TOP_LEFT
+                  y: 32
                   width: 126
-                  long_mode: DOT
                   height: 20
-                  text_font: f16
+                  long_mode: DOT
+                  text_font: f14
+                  text_color: c_muted
                   text: "${name}"
               - label:
                   id: ${uid}_st
                   align: BOTTOM_LEFT
-                  text_font: f14
-                  text_color: c_muted
-                  text: ""
+                  text_font: f18
+                  text: "--"

@@ -28,6 +28,7 @@ substitutions:
 
   # ── Pulpity ────────────────────────────────────────────────────────────────
   hide_page_lights: "false"
+  hide_page_sockets: "false"
   hide_page_heating: "false"
   hide_page_car: "false"
   hide_page_vacuum: "false"
@@ -60,6 +61,7 @@ packages:
   l_tl_lustro:  !include { file: ../tiles/active.yaml, vars: { uid: l_tl_lustro, name: "Lustro toaleta", icon: $ic_lightbulb, entity: light.tl_lustro } }
   l_gb:         !include { file: ../tiles/active.yaml, vars: { uid: l_gb,   name: "Garderoba",  icon: $ic_lightbulb, entity: light.gb_swiatlo } }
   l_pr:         !include { file: ../tiles/active.yaml, vars: { uid: l_pr,   name: "Pralnia",    icon: $ic_lightbulb, entity: light.pr_swiatlo } }
+  l_girlanda:   !include { file: ../tiles/active.yaml, vars: { uid: l_girlanda, name: "Girlanda", icon: $ic_string_lights, entity: switch.tasmota_tasmota2 } }
   # Telewizory / konsola (media_player: widoczny gdy nie jest off/standby)
   tv_salon:     !include { file: ../tiles/active.yaml, vars: { uid: tv_salon, name: "TV salon",     icon: $ic_television, entity: media_player.telewizor_2 } }   # SPRAWDŹ: telewizor / _2 / _3
   tv_sp:        !include { file: ../tiles/active.yaml, vars: { uid: tv_sp,    name: "TV sypialnia", icon: $ic_television, entity: media_player.living_room_ue40h6700 } }
@@ -78,7 +80,6 @@ packages:
       status_entity: sensor.p1s_01p00a3a2600140_status_druku
       progress_entity: sensor.p1s_01p00a3a2600140_postep_drukowania
       end_entity: sensor.p1s_01p00a3a2600140_czas_zakonczenia
-      task_entity: sensor.p1s_01p00a3a2600140_nazwa_zadania
       printing_states: "running,prepare,pause,slicing,init"
 
   # Czujniki ruchu Satel – ruch wybudza ekran; 10 min bez ruchu i dotyku → wygaszenie.
@@ -101,8 +102,35 @@ packages:
   sw_tl_l:    !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_tl_l,    name: "Lustro toaleta",   icon: $ic_lightbulb, entity: light.tl_lustro } }
   sw_gb:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_gb,      name: "Garderoba",        icon: $ic_lightbulb, entity: light.gb_swiatlo } }
   sw_pr:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_pr,      name: "Pralnia",          icon: $ic_lightbulb, entity: light.pr_swiatlo } }
+  sw_gir:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_gir,     name: "Girlanda balkon",  icon: $ic_string_lights, entity: switch.tasmota_tasmota2 } }
 
-  # ── Pulpit 2: OGRZEWANIE (głowice + czujniki Zigbee w pokojach) ────────────
+  # ── Pulpit 2: GNIAZDKA i TASMOTY (moc w W; serwer tylko podgląd) ───────────
+  # mode: toggle = od razu, confirm = pyta przed wyłączeniem, readonly = tylko podgląd
+  so_ekspres: !include { file: ../tiles/socket.yaml, vars: { uid: so_ekspres, name: "Ekspres",          icon: $ic_coffee_maker,    entity: switch.sn_ekspres,              power_entity: sensor.sn_ekspres_energy_power,          mode: toggle } }
+  so_czajnik: !include { file: ../tiles/socket.yaml, vars: { uid: so_czajnik, name: "Czajnik",          icon: $ic_kettle,          entity: switch.czajnik,                 power_entity: sensor.czajnik_energy_power,             mode: toggle } }
+  so_okap:    !include { file: ../tiles/socket.yaml, vars: { uid: so_okap,    name: "Okap",             icon: $ic_fan,             entity: switch.okap,                    power_entity: sensor.okap_energy_power,                mode: toggle } }
+  so_kc:      !include { file: ../tiles/socket.yaml, vars: { uid: so_kc,      name: "Gniazdko kuchnia", icon: $ic_socket,          entity: switch.kc_ganiazdkokuchnia,     power_entity: sensor.kc_ganiazdkokuchnia_power,        mode: toggle } }
+  so_kuna:    !include { file: ../tiles/socket.yaml, vars: { uid: so_kuna,    name: "Filtr Kuna",       icon: $ic_water,           entity: switch.kc_filtr_kuna,           power_entity: sensor.kc_filtr_kuna_energy_power,       mode: toggle } }
+  so_tv:      !include { file: ../tiles/socket.yaml, vars: { uid: so_tv,      name: "Telewizor",        icon: $ic_television,      entity: switch.telewizor,               power_entity: sensor.telewizor_energy_power,           mode: toggle } }
+  so_ps5:     !include { file: ../tiles/socket.yaml, vars: { uid: so_ps5,     name: "PS5",              icon: $ic_gamepad,         entity: switch.ps5,                     power_entity: sensor.ps5_energy_power,                 mode: confirm } }
+  so_kanapa:  !include { file: ../tiles/socket.yaml, vars: { uid: so_kanapa,  name: "Gniazdko kanapa",  icon: $ic_sofa,            entity: switch.sn_gniazdko_kanapa,      power_entity: sensor.sn_gniazdko_kanapa_power,         mode: toggle } }
+  so_pady:    !include { file: ../tiles/socket.yaml, vars: { uid: so_pady,    name: "Ładowarka padów",  icon: $ic_gamepad,         entity: switch.ladowarka_pady,          power_entity: sensor.ladowarka_pady_energy_power,      mode: toggle } }
+  so_sp_pc:   !include { file: ../tiles/socket.yaml, vars: { uid: so_sp_pc,   name: "Komputer SP",      icon: $ic_desk,            entity: switch.sp_komputer,             power_entity: sensor.sp_komputer_energy_power,         mode: confirm } }
+  so_marek:   !include { file: ../tiles/socket.yaml, vars: { uid: so_marek,   name: "Gniazdko Marek",   icon: $ic_socket,          entity: switch.sp_gniazdko_marek,       power_entity: sensor.sp_gniazdko_marek_power,          mode: toggle } }
+  so_ania:    !include { file: ../tiles/socket.yaml, vars: { uid: so_ania,    name: "Listwa Ani",       icon: $ic_power_plug,      entity: switch.sp_listwa_ani_tasmota,   power_entity: sensor.sp_listwa_ani_energy_power,       mode: toggle } }
+  so_pd_pc:   !include { file: ../tiles/socket.yaml, vars: { uid: so_pd_pc,   name: "Komputer PD",      icon: $ic_desk,            entity: switch.pd_komputer,             power_entity: sensor.pd_komputer_energy_power,         mode: confirm } }
+  so_pralka:  !include { file: ../tiles/socket.yaml, vars: { uid: so_pralka,  name: "Pralka",           icon: $ic_washing_machine, entity: switch.pokoj_dzieci_grillplats_plug, power_entity: sensor.pokoj_dzieci_grillplats_plug_moc, mode: confirm } }
+  so_susz:    !include { file: ../tiles/socket.yaml, vars: { uid: so_susz,    name: "Suszarka",         icon: $ic_washing_machine, entity: switch.grillplats_plug,         power_entity: sensor.grillplats_plug_moc,              mode: confirm } }
+  so_daga:    !include { file: ../tiles/socket.yaml, vars: { uid: so_daga,    name: "Daga Dreame",      icon: $ic_robot_vacuum,    entity: switch.lz_daga_dreame,          power_entity: sensor.lz_daga_dreame_energy_power,      mode: toggle } }
+  so_tl:      !include { file: ../tiles/socket.yaml, vars: { uid: so_tl,      name: "Gniazdko TL",      icon: $ic_socket,          entity: switch.tl_gniazdko,             power_entity: sensor.tl_gniazdko_power,                mode: toggle } }
+  so_3d:      !include { file: ../tiles/socket.yaml, vars: { uid: so_3d,      name: "Drukarka 3D",      icon: $ic_printer_3d,      entity: switch.drukarka3d,              power_entity: sensor.drukarka3d_energy_power,          mode: confirm } }
+  so_druk:    !include { file: ../tiles/socket.yaml, vars: { uid: so_druk,    name: "Drukarka",         icon: $ic_printer_3d,      entity: switch.gb_drukarka,             power_entity: sensor.gb_drukarka_energy_power,         mode: toggle } }
+  so_server:  !include { file: ../tiles/socket.yaml, vars: { uid: so_server,  name: "Serwer",           icon: $ic_server,          entity: switch.tasmota_server,          power_entity: sensor.tasmota_server_energy_power,      mode: readonly } }
+  so_stacja:  !include { file: ../tiles/socket.yaml, vars: { uid: so_stacja,  name: "Stacja pogody",    icon: $ic_thermometer,     entity: switch.balkon_stacja_pogody,    power_entity: sensor.balkon_energy_power,              mode: toggle } }
+  so_balkon:  !include { file: ../tiles/socket.yaml, vars: { uid: so_balkon,  name: "Balkon wolny",     icon: $ic_socket,          entity: switch.balkon_wolny,            power_entity: sensor.balkon_energy_power,              mode: toggle } }
+  so_taras:   !include { file: ../tiles/socket.yaml, vars: { uid: so_taras,   name: "Taras wolny",      icon: $ic_socket,          entity: switch.tasmota_3,               power_entity: sensor.tasmota_energy_power,             mode: toggle } }
+
+  # ── Pulpit 3: OGRZEWANIE (głowice + czujniki Zigbee w pokojach) ────────────
   # Uwaga: głowice są w trybie "auto" (harmonogram) – ręczna zmiana zadanej może
   # zostać nadpisana przez harmonogram przy następnym kroku.
   h_salon: !include { file: ../tiles/climate.yaml, vars: { uid: h_salon, name: "Salon",        entity: climate.sn_thermostat, room_temp_entity: sensor.sn_temperatura_temperature } }
@@ -110,13 +138,19 @@ packages:
   h_pd:    !include { file: ../tiles/climate.yaml, vars: { uid: h_pd,    name: "Pokój dzieci", entity: climate.pd_themostat,  room_temp_entity: sensor.pd_temperatura_temperature } }
   h_lz:    !include { file: ../tiles/climate.yaml, vars: { uid: h_lz,    name: "Łazienka",     entity: climate.lz_thermostat, room_temp_entity: sensor.lz_temperatura_temperature } }
 
-  # ── Pulpit 3: SAMOCHÓD (MG HS) ─────────────────────────────────────────────
-  car_fuel:   !include { file: ../tiles/value_card.yaml, vars: { uid: car_fuel,   page: page_car, name: "Paliwo",          icon: $ic_gas_station,   entity: sensor.mg_hs_fuel_level_2,     unit: "%",   decimals: 0 } }
-  car_frange: !include { file: ../tiles/value_card.yaml, vars: { uid: car_frange, page: page_car, name: "Zasięg paliwo",   icon: $ic_map_marker,    entity: sensor.mg_hs_fuel_range_2,     unit: " km", decimals: 0 } }
-  car_erange: !include { file: ../tiles/value_card.yaml, vars: { uid: car_erange, page: page_car, name: "Zasięg prąd",     icon: $ic_car_electric,  entity: sensor.mg_hs_electric_range_2, unit: " km", decimals: 0 } }
-  car_charge: !include { file: ../tiles/text_card.yaml,  vars: { uid: car_charge, page: page_car, name: "Ładowanie",       icon: $ic_ev_station,    entity: sensor.mg_hs_charging_status_2 } }
-  car_lock:   !include { file: ../tiles/text_card.yaml,  vars: { uid: car_lock,   page: page_car, name: "Zamek",           icon: $ic_lock,          entity: lock.mg_hs_lock_2 } }
-  car_temp:   !include { file: ../tiles/value_card.yaml, vars: { uid: car_temp,   page: page_car, name: "Wnętrze",         icon: $ic_thermometer,   entity: sensor.mg_hs_interior_temperature_2, unit: "°", decimals: 0 } }
+  # ── Pulpit 4: SAMOCHÓD (MG HS) ─────────────────────────────────────────────
+  # rząd 1: odczyty
+  car_fuel:   !include { file: ../tiles/value_card.yaml, vars: { uid: car_fuel,   page: page_car, name: "Paliwo",          icon: $ic_gas_station,  entity: sensor.mg_hs_fuel_level_2,          unit: "%",   decimals: 0 } }
+  car_frange: !include { file: ../tiles/value_card.yaml, vars: { uid: car_frange, page: page_car, name: "Zasięg paliwo",   icon: $ic_map_marker,   entity: sensor.mg_hs_fuel_range_2,          unit: " km", decimals: 0 } }
+  car_erange: !include { file: ../tiles/value_card.yaml, vars: { uid: car_erange, page: page_car, name: "Zasięg prąd",     icon: $ic_car_electric, entity: sensor.mg_hs_electric_range_2,      unit: " km", decimals: 0 } }
+  car_avg:    !include { file: ../tiles/value_card.yaml, vars: { uid: car_avg,    page: page_car, name: "Średnie spalanie", icon: $ic_gas_station,  entity: sensor.mg_ehs_srednie_spalanie,     unit: "",    decimals: 1 } }
+  car_temp:   !include { file: ../tiles/value_card.yaml, vars: { uid: car_temp,   page: page_car, name: "Wnętrze",         icon: $ic_thermometer,  entity: sensor.mg_hs_interior_temperature_2, unit: "°",  decimals: 0 } }
+  # rząd 2: stan i sterowanie
+  car_charge: !include { file: ../tiles/text_card.yaml,  vars: { uid: car_charge, page: page_car, name: "Ładowanie",       icon: $ic_ev_station,   entity: sensor.mg_hs_charging_status_2 } }
+  car_lock:   !include { file: ../tiles/text_card.yaml,  vars: { uid: car_lock,   page: page_car, name: "Zamek",           icon: $ic_lock,         entity: lock.mg_hs_lock_2 } }
+  car_ac:     !include { file: ../tiles/toggle_card.yaml, vars: { uid: car_ac,    page: page_car, name: "Klimatyzacja (postój)", icon: $ic_air_conditioner, entity: switch.garaz_mg_hs_air_conditioning, info_entity: number.garaz_mg_hs_climate_target_temperature, info_suffix: "°" } }
+  car_seat_l: !include { file: ../tiles/toggle_card.yaml, vars: { uid: car_seat_l, page: page_car, name: "Fotel kierowcy",  icon: $ic_fire, entity: switch.mg_hs_heated_seat_front_left_2,  info_entity: sensor.mg_hs_exterior_temperature_2, info_suffix: "° na zew." } }
+  car_seat_r: !include { file: ../tiles/toggle_card.yaml, vars: { uid: car_seat_r, page: page_car, name: "Fotel pasażera",  icon: $ic_fire, entity: switch.mg_hs_heated_seat_front_right_2, info_entity: sensor.mg_hs_exterior_temperature_2, info_suffix: "° na zew." } }
   car_low: !include
     file: ../tiles/alert_threshold.yaml
     vars:
@@ -132,9 +166,9 @@ packages:
       decimals: 0
       min: 0
       max: 100
-  car_open: !include { file: ../tiles/alert_state.yaml, vars: { uid: car_open, entity: lock.mg_hs_lock_2, message: "Auto jest otwarte", icon: $ic_lock_open, states: "unlocked,open", goto: 3 } }
+  car_open: !include { file: ../tiles/alert_state.yaml, vars: { uid: car_open, entity: lock.mg_hs_lock_2, message: "Auto jest otwarte", icon: $ic_lock_open, states: "unlocked,open", goto: 4 } }
 
-  # ── Pulpit 4: ODKURZACZ Dreame X40 (tylko wybrane pomieszczenia) ───────────
+  # ── Pulpit 5: ODKURZACZ Dreame X40 (tylko wybrane pomieszczenia) ───────────
   # Pomieszczenia z mapy "Dom" (ID segmentu = numer z aplikacji Dreame); nazwy możesz zmienić
   vac: !include { file: ../tiles/vacuum.yaml, vars: { name: "Odkurzacz", prefix: x40_ultra_complete } }
   vr_8: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_8, segment: 8, name: "Salon",              icon: $ic_sofa } }
@@ -147,7 +181,7 @@ packages:
   vr_5: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_5, segment: 5, name: "Łazienka 2",         icon: $ic_shower } }
   vac_ctrl: !include { file: ../tiles/vacuum_controls.yaml, vars: { prefix: x40_ultra_complete } }
 
-  # ── Pulpit 5: AGD – zmywarka, pralka, suszarka ─────────────────────────────
+  # ── Pulpit 6: AGD – zmywarka, pralka, suszarka ─────────────────────────────
   dish: !include
     file: ../tiles/dishwasher.yaml
     vars:
@@ -160,8 +194,8 @@ packages:
       door_entity: binary_sensor.zmywarka_do_naczyn_door        # SPRAWDŹ: on = drzwi otwarte?
       door_open_states: "on,open"
       remaining_entity: sensor.zmywarka_do_naczyn_current_program_remaining_time
-  dish_salt: !include { file: ../tiles/alert_state.yaml, vars: { uid: dish_salt,  entity: binary_sensor.zmywarka_do_naczyn_salt_refill,      message: "Zmywarka: uzupełnij sól",          icon: $ic_dishwasher_alert, states: "on", goto: 5 } }
-  dish_rinse: !include { file: ../tiles/alert_state.yaml, vars: { uid: dish_rinse, entity: binary_sensor.zmywarka_do_naczyn_rinse_aid_refill, message: "Zmywarka: uzupełnij nabłyszczacz", icon: $ic_dishwasher_alert, states: "on", goto: 5 } }
+  dish_salt: !include { file: ../tiles/alert_state.yaml, vars: { uid: dish_salt,  entity: binary_sensor.zmywarka_do_naczyn_salt_refill,      message: "Zmywarka: uzupełnij sól",          icon: $ic_dishwasher_alert, states: "on", goto: 6 } }
+  dish_rinse: !include { file: ../tiles/alert_state.yaml, vars: { uid: dish_rinse, entity: binary_sensor.zmywarka_do_naczyn_rinse_aid_refill, message: "Zmywarka: uzupełnij nabłyszczacz", icon: $ic_dishwasher_alert, states: "on", goto: 6 } }
 
   pralka: !include
     file: ../tiles/appliance_power.yaml
@@ -170,7 +204,7 @@ packages:
     file: ../tiles/appliance_power.yaml
     vars: { uid: suszarka, name: "Suszarka", icon: $ic_washing_machine, entity: sensor.grillplats_plug_moc, threshold: 5, finish_min: 3, finish_message: "Suszarka skończyła – wyjmij pranie" }
 
-  # ── Pulpit 6: ROŚLINY (alert "Podlej" poniżej progu; progi zmienisz w HA/WWW)
+  # ── Pulpit 7: ROŚLINY (alert "Podlej" poniżej progu; progi zmienisz w HA/WWW)
   p_kaktus:   !include { file: ../tiles/plant.yaml, vars: { uid: p_kaktus,   name: "Kaktus",               entity: sensor.sn_kaktus_soil_moisture,                    threshold: 15 } }
   p_paprotka: !include { file: ../tiles/plant.yaml, vars: { uid: p_paprotka, name: "Paprotka",             entity: sensor.sn_paprotka_soil_moisture,                  threshold: 60 } }
   p_sans_d:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_d,   name: "Sansewieria duża",     entity: sensor.sn_sansewieria_gwinejska_duza_soil_moisture, threshold: 30 } }

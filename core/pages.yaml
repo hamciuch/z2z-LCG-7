@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Pulpity (strony LVGL), nawigacja dolnym paskiem ikon, wygaszanie ekranu.
-#   0 Teraz · 1 Światła · 2 Ogrzewanie · 3 Samochód · 4 Odkurzacz · 5 AGD · 6 Rośliny
+#   0 Teraz · 1 Światła · 2 Gniazdka · 3 Ogrzewanie · 4 Auto · 5 Odkurzacz · 6 AGD · 7 Rośliny
 # Kafelki z tiles/*.yaml dopisują się do stron przez `!extend page_xxx`.
 # Numery pulpitów używa "goto" w alertach i akcja API show_page.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -70,13 +70,21 @@ lvgl:
       on_load:
         - script.execute: { id: dots_set, idx: 1 }
 
+    - id: page_sockets
+      skip: ${hide_page_sockets}
+      styles: page_style
+      scroll_dir: VER
+      layout: *flex
+      on_load:
+        - script.execute: { id: dots_set, idx: 2 }
+
     - id: page_heating
       skip: ${hide_page_heating}
       styles: page_style
       scroll_dir: VER
       layout: *flex
       on_load:
-        - script.execute: { id: dots_set, idx: 2 }
+        - script.execute: { id: dots_set, idx: 3 }
 
     - id: page_car
       skip: ${hide_page_car}
@@ -84,7 +92,7 @@ lvgl:
       scroll_dir: VER
       layout: *flex
       on_load:
-        - script.execute: { id: dots_set, idx: 3 }
+        - script.execute: { id: dots_set, idx: 4 }
 
     - id: page_vacuum
       skip: ${hide_page_vacuum}
@@ -92,7 +100,7 @@ lvgl:
       scroll_dir: VER
       layout: *flex
       on_load:
-        - script.execute: { id: dots_set, idx: 4 }
+        - script.execute: { id: dots_set, idx: 5 }
 
     - id: page_appliances
       skip: ${hide_page_appliances}
@@ -100,7 +108,7 @@ lvgl:
       scroll_dir: VER
       layout: *flex
       on_load:
-        - script.execute: { id: dots_set, idx: 5 }
+        - script.execute: { id: dots_set, idx: 6 }
 
     - id: page_plants
       skip: ${hide_page_plants}
@@ -108,7 +116,7 @@ lvgl:
       scroll_dir: VER
       layout: *flex
       on_load:
-        - script.execute: { id: dots_set, idx: 6 }
+        - script.execute: { id: dots_set, idx: 7 }
 
 script:
   # Pokazuje / chowa napis "wszystko wyłączone" na pulpicie głównym
@@ -140,8 +148,8 @@ script:
       idx: int
     then:
       - lambda: |-
-          lv_obj_t *n[] = {id(nav0), id(nav1), id(nav2), id(nav3), id(nav4), id(nav5), id(nav6)};
-          for (int i = 0; i < 7; i++) {
+          lv_obj_t *n[] = {id(nav0), id(nav1), id(nav2), id(nav3), id(nav4), id(nav5), id(nav6), id(nav7)};
+          for (int i = 0; i < 8; i++) {
             bool on = i == idx;
             lv_obj_set_style_bg_opa(n[i], on ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
             lv_obj_t *ico = lv_obj_get_child(n[i], 0), *txt = lv_obj_get_child(n[i], 1);
@@ -155,4 +163,4 @@ script:
       idx: int
     then:
       - lambda: |-
-          if (idx >= 0 && idx < 7) id(lvgl_main)->show_page(idx, LV_SCREEN_LOAD_ANIM_FADE_IN, 200);
+          if (idx >= 0 && idx < 8) id(lvgl_main)->show_page(idx, LV_SCREEN_LOAD_ANIM_FADE_IN, 200);

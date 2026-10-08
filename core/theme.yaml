@@ -64,6 +64,7 @@ substitutions:
   ic_timer: "\U000F051B"
   ic_sofa: "\U000F04B9"
   ic_home: "\U000F02DC"
+  ic_string_lights: "\U000F12BA"
   ic_bed: "\U000F02E3"
   ic_kitchen: "\U000F0A70"
   ic_shower: "\U000F09A0"
@@ -79,6 +80,11 @@ font:
   - file: fonts/Nunito-SemiBold.ttf
     id: f14
     size: 14
+    bpp: 4
+    glyphsets: [GF_Latin_Core]
+  - file: fonts/Nunito-SemiBold.ttf
+    id: f16
+    size: 16
     bpp: 4
     glyphsets: [GF_Latin_Core]
   - file: fonts/Nunito-SemiBold.ttf
@@ -110,43 +116,43 @@ font:
     id: i24
     size: 24
     bpp: 4
-    glyphs: [$ic_lightbulb, $ic_lightbulb_group, $ic_television, $ic_power_plug, $ic_socket, $ic_coffee_maker, $ic_kettle, $ic_printer_3d, $ic_thermometer, $ic_rain, $ic_cloud, $ic_sunny, $ic_umbrella, $ic_home_account, $ic_account, $ic_account_off, $ic_server, $ic_server_off, $ic_home_assistant, $ic_wifi, $ic_wifi_off, $ic_radiator, $ic_thermostat, $ic_fire, $ic_snowflake, $ic_minus, $ic_plus, $ic_car, $ic_car_electric, $ic_battery, $ic_battery_charging, $ic_battery_alert, $ic_gas_station, $ic_map_marker, $ic_lock, $ic_lock_open, $ic_robot_vacuum, $ic_play, $ic_pause, $ic_dock, $ic_dishwasher, $ic_dishwasher_alert, $ic_flower, $ic_sprout, $ic_water, $ic_water_alert, $ic_alert, $ic_alert_circle, $ic_check_circle, $ic_cog, $ic_update, $ic_restart, $ic_close, $ic_fan, $ic_speaker, $ic_air_conditioner, $ic_washing_machine, $ic_timer, $ic_sofa, $ic_home, $ic_bed, $ic_kitchen, $ic_shower, $ic_toilet, $ic_hanger, $ic_door, $ic_teddy_bear, $ic_desk, $ic_gamepad, $ic_stove, $ic_ev_station]
+    glyphs: [$ic_lightbulb, $ic_lightbulb_group, $ic_television, $ic_power_plug, $ic_socket, $ic_coffee_maker, $ic_kettle, $ic_printer_3d, $ic_thermometer, $ic_rain, $ic_cloud, $ic_sunny, $ic_umbrella, $ic_home_account, $ic_account, $ic_account_off, $ic_server, $ic_server_off, $ic_home_assistant, $ic_wifi, $ic_wifi_off, $ic_radiator, $ic_thermostat, $ic_fire, $ic_snowflake, $ic_minus, $ic_plus, $ic_car, $ic_car_electric, $ic_battery, $ic_battery_charging, $ic_battery_alert, $ic_gas_station, $ic_map_marker, $ic_lock, $ic_lock_open, $ic_robot_vacuum, $ic_play, $ic_pause, $ic_dock, $ic_dishwasher, $ic_dishwasher_alert, $ic_flower, $ic_sprout, $ic_water, $ic_water_alert, $ic_alert, $ic_alert_circle, $ic_check_circle, $ic_cog, $ic_update, $ic_restart, $ic_close, $ic_fan, $ic_speaker, $ic_air_conditioner, $ic_washing_machine, $ic_timer, $ic_sofa, $ic_home, $ic_bed, $ic_kitchen, $ic_shower, $ic_toilet, $ic_hanger, $ic_door, $ic_teddy_bear, $ic_desk, $ic_gamepad, $ic_stove, $ic_ev_station, $ic_string_lights]
   - file: fonts/materialdesignicons-webfont.ttf
     id: i32
     size: 32
     bpp: 4
-    glyphs: [$ic_lightbulb, $ic_lightbulb_group, $ic_television, $ic_power_plug, $ic_socket, $ic_coffee_maker, $ic_kettle, $ic_printer_3d, $ic_thermometer, $ic_rain, $ic_cloud, $ic_sunny, $ic_umbrella, $ic_home_account, $ic_account, $ic_account_off, $ic_server, $ic_server_off, $ic_home_assistant, $ic_wifi, $ic_wifi_off, $ic_radiator, $ic_thermostat, $ic_fire, $ic_snowflake, $ic_minus, $ic_plus, $ic_car, $ic_car_electric, $ic_battery, $ic_battery_charging, $ic_battery_alert, $ic_gas_station, $ic_map_marker, $ic_lock, $ic_lock_open, $ic_robot_vacuum, $ic_play, $ic_pause, $ic_dock, $ic_dishwasher, $ic_dishwasher_alert, $ic_flower, $ic_sprout, $ic_water, $ic_water_alert, $ic_alert, $ic_alert_circle, $ic_check_circle, $ic_cog, $ic_update, $ic_restart, $ic_close, $ic_fan, $ic_speaker, $ic_air_conditioner, $ic_washing_machine, $ic_timer, $ic_sofa, $ic_home, $ic_bed, $ic_kitchen, $ic_shower, $ic_toilet, $ic_hanger, $ic_door, $ic_teddy_bear, $ic_desk, $ic_gamepad, $ic_stove, $ic_ev_station]
+    glyphs: [$ic_lightbulb, $ic_lightbulb_group, $ic_television, $ic_power_plug, $ic_socket, $ic_coffee_maker, $ic_kettle, $ic_printer_3d, $ic_thermometer, $ic_rain, $ic_cloud, $ic_sunny, $ic_umbrella, $ic_home_account, $ic_account, $ic_account_off, $ic_server, $ic_server_off, $ic_home_assistant, $ic_wifi, $ic_wifi_off, $ic_radiator, $ic_thermostat, $ic_fire, $ic_snowflake, $ic_minus, $ic_plus, $ic_car, $ic_car_electric, $ic_battery, $ic_battery_charging, $ic_battery_alert, $ic_gas_station, $ic_map_marker, $ic_lock, $ic_lock_open, $ic_robot_vacuum, $ic_play, $ic_pause, $ic_dock, $ic_dishwasher, $ic_dishwasher_alert, $ic_flower, $ic_sprout, $ic_water, $ic_water_alert, $ic_alert, $ic_alert_circle, $ic_check_circle, $ic_cog, $ic_update, $ic_restart, $ic_close, $ic_fan, $ic_speaker, $ic_air_conditioner, $ic_washing_machine, $ic_timer, $ic_sofa, $ic_home, $ic_bed, $ic_kitchen, $ic_shower, $ic_toilet, $ic_hanger, $ic_door, $ic_teddy_bear, $ic_desk, $ic_gamepad, $ic_stove, $ic_ev_station, $ic_string_lights]
   - file: fonts/materialdesignicons-webfont.ttf
     id: i48
     size: 48
     bpp: 4
-    glyphs: [$ic_lightbulb, $ic_lightbulb_group, $ic_television, $ic_power_plug, $ic_socket, $ic_coffee_maker, $ic_kettle, $ic_printer_3d, $ic_thermometer, $ic_rain, $ic_cloud, $ic_sunny, $ic_umbrella, $ic_home_account, $ic_account, $ic_account_off, $ic_server, $ic_server_off, $ic_home_assistant, $ic_wifi, $ic_wifi_off, $ic_radiator, $ic_thermostat, $ic_fire, $ic_snowflake, $ic_minus, $ic_plus, $ic_car, $ic_car_electric, $ic_battery, $ic_battery_charging, $ic_battery_alert, $ic_gas_station, $ic_map_marker, $ic_lock, $ic_lock_open, $ic_robot_vacuum, $ic_play, $ic_pause, $ic_dock, $ic_dishwasher, $ic_dishwasher_alert, $ic_flower, $ic_sprout, $ic_water, $ic_water_alert, $ic_alert, $ic_alert_circle, $ic_check_circle, $ic_cog, $ic_update, $ic_restart, $ic_close, $ic_fan, $ic_speaker, $ic_air_conditioner, $ic_washing_machine, $ic_timer, $ic_sofa, $ic_home, $ic_bed, $ic_kitchen, $ic_shower, $ic_toilet, $ic_hanger, $ic_door, $ic_teddy_bear, $ic_desk, $ic_gamepad, $ic_stove, $ic_ev_station]
+    glyphs: [$ic_lightbulb, $ic_lightbulb_group, $ic_television, $ic_power_plug, $ic_socket, $ic_coffee_maker, $ic_kettle, $ic_printer_3d, $ic_thermometer, $ic_rain, $ic_cloud, $ic_sunny, $ic_umbrella, $ic_home_account, $ic_account, $ic_account_off, $ic_server, $ic_server_off, $ic_home_assistant, $ic_wifi, $ic_wifi_off, $ic_radiator, $ic_thermostat, $ic_fire, $ic_snowflake, $ic_minus, $ic_plus, $ic_car, $ic_car_electric, $ic_battery, $ic_battery_charging, $ic_battery_alert, $ic_gas_station, $ic_map_marker, $ic_lock, $ic_lock_open, $ic_robot_vacuum, $ic_play, $ic_pause, $ic_dock, $ic_dishwasher, $ic_dishwasher_alert, $ic_flower, $ic_sprout, $ic_water, $ic_water_alert, $ic_alert, $ic_alert_circle, $ic_check_circle, $ic_cog, $ic_update, $ic_restart, $ic_close, $ic_fan, $ic_speaker, $ic_air_conditioner, $ic_washing_machine, $ic_timer, $ic_sofa, $ic_home, $ic_bed, $ic_kitchen, $ic_shower, $ic_toilet, $ic_hanger, $ic_door, $ic_teddy_bear, $ic_desk, $ic_gamepad, $ic_stove, $ic_ev_station, $ic_string_lights]
 
 color:
   - id: c_bg
-    hex: "0F1115"
+    hex: "0B0E14"
   - id: c_card
-    hex: "1C2028"
+    hex: "161B26"
   - id: c_card2
-    hex: "262B35"
+    hex: "202736"
   - id: c_text
-    hex: "ECEFF1"
+    hex: "E8ECF2"
   - id: c_muted
-    hex: "8A94A6"
+    hex: "8691A6"
   - id: c_accent
-    hex: "FFB300"
+    hex: "4C9EFF"
   - id: c_ok
-    hex: "43A047"
+    hex: "34C77B"
   - id: c_warn
-    hex: "FF8F00"
+    hex: "FF9F43"
   - id: c_err
-    hex: "E53935"
+    hex: "FF5C5C"
   - id: c_heat
-    hex: "FF7043"
+    hex: "FF7A45"
   - id: c_cool
-    hex: "42A5F5"
+    hex: "4C9EFF"
   - id: c_water
-    hex: "29B6F6"
+    hex: "38BDF8"
 
 lvgl:
   default_font: f18
@@ -185,7 +191,7 @@ lvgl:
       width: 148
       height: 108
       radius: 16
-      bg_color: 0x3A2E10
+      bg_color: 0x16294A
       bg_opa: COVER
       border_width: 2
       border_color: c_accent
@@ -195,7 +201,7 @@ lvgl:
       width: 306
       height: 108
       radius: 16
-      bg_color: 0x3A1A10
+      bg_color: 0x34200F
       bg_opa: COVER
       border_width: 2
       border_color: c_warn
