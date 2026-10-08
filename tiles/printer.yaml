@@ -1,12 +1,19 @@
 # Drukarka 3D Bambu Lab (integracja ha-bambulab) – kafelek na "Teraz" TYLKO podczas druku:
 # nazwa zadania, postęp z paskiem, przewidywana godzina końca i pozostały czas.
 # Gdy nie drukuje – kafelka nie ma.
-# vars: uid, name, status_entity, progress_entity, remaining_entity (min), task_entity,
+# Godzinę końca bierze z encji "Czas zakończenia" (znacznik czasu), pozostały czas liczy sam.
+# vars: uid, name, status_entity, progress_entity, end_entity (timestamp), task_entity,
 #       printing_states (lista po przecinku)
 text_sensor:
   - platform: homeassistant
     id: ${uid}_st
     entity_id: ${status_entity}
+    internal: true
+    on_value:
+      - script.execute: ${uid}_refresh
+  - platform: homeassistant
+    id: ${uid}_end
+    entity_id: ${end_entity}
     internal: true
     on_value:
       - script.execute: ${uid}_refresh
@@ -27,12 +34,6 @@ sensor:
     internal: true
     on_value:
       - script.execute: ${uid}_refresh
-  - platform: homeassistant
-    id: ${uid}_rem
-    entity_id: ${remaining_entity}
-    internal: true
-    on_value:
-      - script.execute: ${uid}_refresh
 
 script:
   - id: ${uid}_refresh
@@ -41,19 +42,22 @@ script:
       - lambda: |-
           bool printing = z2z::in_list(id(${uid}_st).state, "${printing_states}");
           float p = id(${uid}_prog).state;
-          float rem = id(${uid}_rem).state;   // minuty
           lv_bar_set_value(id(${uid}_bar), isnan(p) ? 0 : (int) p, LV_ANIM_ON);
-          char b[64] = "";
+          char b[80] = "";
+          int64_t end = z2z::parse_iso(id(${uid}_end).state);
           auto now = id(ha_time).now();
-          if (!isnan(rem) && rem >= 0 && now.is_valid()) {
-            int end = now.hour * 60 + now.minute + (int) rem;
-            int h = (end / 60) % 24, m = end % 60;
-            int rh = (int) rem / 60, rm = (int) rem % 60;
-            if (rh > 0) snprintf(b, sizeof(b), "%.0f%% · koniec %02d:%02d (%d h %02d min)", isnan(p) ? 0.f : p, h, m, rh, rm);
-            else snprintf(b, sizeof(b), "%.0f%% · koniec %02d:%02d (%d min)", isnan(p) ? 0.f : p, h, m, rm);
-          } else if (!isnan(p)) {
-            snprintf(b, sizeof(b), "%.0f%%", p);
+          if (end > 0 && now.is_valid()) {
+            auto e = ESPTime::from_epoch_local((time_t) end);
+            int rem = (int) ((end - (int64_t) now.timestamp) / 60);
+            if (rem < 0) rem = 0;
+            bool tomorrow = e.day_of_year != now.day_of_year;
+            if (rem >= 60)
+              snprintf(b, sizeof(b), "koniec %s%02d:%02d · %d h %02d min", tomorrow ? "jutro " : "",
+                       e.hour, e.minute, rem / 60, rem % 60);
+            else
+              snprintf(b, sizeof(b), "koniec %02d:%02d · %d min", e.hour, e.minute, rem);
           }
+          lv_label_set_text(id(${uid}_pct), isnan(p) ? "" : z2z::fmt(p, 0, "%").c_str());
           lv_label_set_text(id(${uid}_info), b);
           z2z::set_visible(id(${uid}_tile), printing);
       - script.execute: home_refresh
@@ -85,11 +89,17 @@ lvgl:
                   text_font: f18
                   text: "${name}"
               - label:
+                  id: ${uid}_pct
+                  align: TOP_RIGHT
+                  text_font: f22
+                  text_color: c_accent
+                  text: ""
+              - label:
                   id: ${uid}_task_lbl
                   align: TOP_LEFT
                   x: 42
                   y: 22
-                  width: 236
+                  width: 180
                   long_mode: DOT
                   text_font: f14
                   text_color: c_muted

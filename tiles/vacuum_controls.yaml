@@ -654,7 +654,7 @@ lvgl:
                       long_mode: WRAP
                       text_font: f18
                       text_color: c_muted
-                      text: "Utworzy NOWĄ mapę (obecna zostaje, ale pokoje na panelu mają ID z obecnej mapy). Uruchamiaj tylko, gdy wiesz, że tego chcesz."
+                      text: "Szybkie mapowanie tworzy NOWĄ mapę. Pokoje na panelu mają numery z obecnej mapy \"Dom\" – po nowej mapie trzeba je zaktualizować."
                   - button:
                       align: BOTTOM_LEFT
                       width: 180
@@ -668,19 +668,6 @@ lvgl:
                               entity_id: button.${prefix}_start_fast_mapping
                       widgets:
                         - label: { align: CENTER, text_font: f18, text_align: CENTER, text: "Szybkie\nmapowanie" }
-                  - button:
-                      align: BOTTOM_MID
-                      width: 180
-                      height: 64
-                      on_click:
-                        - lvgl.widget.hide: vac_map_popup
-                        - lvgl.widget.hide: vac_opts_popup
-                        - homeassistant.action:
-                            action: button.press
-                            data:
-                              entity_id: button.${prefix}_start_mapping
-                      widgets:
-                        - label: { align: CENTER, text_font: f18, text_align: CENTER, text: "Mapowanie\nze sprzątaniem" }
                   - button:
                       align: BOTTOM_RIGHT
                       width: 180
