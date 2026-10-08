@@ -149,7 +149,7 @@ lvgl:
                   align: BOTTOM_LEFT
                   width: 150
                   long_mode: DOT
-                  height: 18
+                  height: 22
                   text_font: f14
                   text_color: c_muted
                   text: ""

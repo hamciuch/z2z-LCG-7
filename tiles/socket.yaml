@@ -81,7 +81,7 @@ lvgl:
               - label:
                   align: BOTTOM_LEFT
                   width: 105
-                  height: 18
+                  height: 22
                   long_mode: DOT
                   text_font: f14
                   text: "${name}"

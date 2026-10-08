@@ -90,7 +90,7 @@ lvgl:
                   align: BOTTOM_LEFT
                   y: -16
                   width: 284
-                  height: 22
+                  height: 26
                   long_mode: DOT
                   text_font: f18
                   text: ""

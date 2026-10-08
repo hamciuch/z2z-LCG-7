@@ -30,7 +30,7 @@ lvgl:
                   align: TOP_LEFT
                   y: 32
                   width: 126
-                  height: 20
+                  height: 22
                   long_mode: DOT
                   text_font: f14
                   text_color: c_muted
@@ -39,7 +39,7 @@ lvgl:
                   id: ${uid}_lbl
                   align: BOTTOM_LEFT
                   width: 126
-                  height: 24
+                  height: 26
                   long_mode: DOT
                   text_font: f18
                   text: "--"

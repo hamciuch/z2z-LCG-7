@@ -47,7 +47,7 @@ lvgl:
                   y: -18
                   width: 126
                   long_mode: DOT
-                  height: 20
+                  height: 24
                   text_font: f16
                   text: "${name}"
               - label:
