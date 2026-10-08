@@ -95,7 +95,15 @@ jobs:
         run: esphome -s fw_version "${{ steps.ver.outputs.version }}" config "$CONFIG" > /dev/null
 
       - name: Kompilacja
-        run: esphome -s fw_version "${{ steps.ver.outputs.version }}" compile "$CONFIG"
+        run: |
+          set -o pipefail
+          esphome -s fw_version "${{ steps.ver.outputs.version }}" compile "$CONFIG" 2>&1 | tee build.log
+
+      - name: Błędy kompilacji jako adnotacje
+        if: failure()
+        run: |
+          grep -E "error:|Error |undefined reference|FAILED" build.log | grep -v "Werror" | head -40 | \
+            while IFS= read -r l; do echo "::error::${l:0:900}"; done || true
 
       - name: Przygotowanie plików (manifest OTA + instalator WWW)
         env:
