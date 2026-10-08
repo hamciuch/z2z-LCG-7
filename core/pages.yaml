@@ -7,7 +7,8 @@
 
 lvgl:
   id: lvgl_main
-  buffer_size: 25%
+  # 100% = bufor w PSRAM (przy <=25% ESPHome bierze wewnętrzny RAM i brakuje go dla WiFi/mDNS)
+  buffer_size: 100%
   page_wrap: true
   resume_on_input: true
   log_level: WARN
