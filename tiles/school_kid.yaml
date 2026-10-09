@@ -1,0 +1,169 @@
+# Pulpit "Szkoła": kolumna jednego dziecka.
+#  - średnia ze wszystkich ocen i ostatnia ocena z przedmiotem
+#  - plan lekcji na najbliższy dzień szkolny; lekcje, które się skończyły, znikają
+#  - na dole: najbliższy sprawdzian, szczęśliwy numerek (z "to Ty!"), zadania domowe, wiadomości
+# vars: uid, name, plan_calendar, avg_entity, grades_entity (atrybut latest), student_entity (atrybut number),
+#       lucky_entity, homework_entity, test_entity, msg_entity (atrybut liczba_nieprzeczytanych)
+globals:
+  - { id: "${uid}_lessons", type: "std::vector<z2z::Lesson>" }
+
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_latest
+    entity_id: ${grades_entity}
+    attribute: latest
+    internal: true
+    on_value:
+      - lambda: |-
+          std::string g = z2z::dict_get(x, "grade");
+          if (g.empty()) g = z2z::dict_get(x, "value");
+          if (g.empty()) g = z2z::dict_get(x, "ocena");
+          if (g.empty()) g = z2z::dict_get(x, "symbol");
+          std::string s = z2z::dict_get(x, "subject");
+          if (s.empty()) s = z2z::dict_get(x, "przedmiot");
+          if (s.empty()) s = z2z::dict_get(x, "lesson");
+          std::string t;
+          if (!g.empty() || !s.empty()) t = "Ostatnia ocena: " + g + (s.empty() ? "" : " · " + s);
+          else if (!x.empty() && x != "unknown" && x != "None") t = "Ostatnia ocena: " + x.substr(0, 60);
+          lv_label_set_text(id(${uid}_last), t.c_str());
+  - platform: homeassistant
+    id: ${uid}_nr
+    entity_id: ${student_entity}
+    attribute: number
+    internal: true
+    on_value: { script.execute: "${uid}_info" }
+  - platform: homeassistant
+    id: ${uid}_lucky
+    entity_id: ${lucky_entity}
+    internal: true
+    on_value: { script.execute: "${uid}_info" }
+  - platform: homeassistant
+    id: ${uid}_test
+    entity_id: ${test_entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          bool none = x.empty() || x == "brak" || x == "unknown" || x == "unavailable";
+          lv_label_set_text(id(${uid}_testl), none ? "Brak zapowiedzianych sprawdzianów" : ("Sprawdzian: " + x).c_str());
+          z2z::set_text_color(id(${uid}_testl), none ? z2z::C_MUTED : z2z::C_WARN);
+
+sensor:
+  - platform: homeassistant
+    id: ${uid}_avg
+    entity_id: ${avg_entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          std::string a = isnan(x) ? std::string("–") : z2z::fmt(x, 2, "");
+          for (auto &c : a) if (c == '.') c = ',';
+          lv_label_set_text(id(${uid}_avgl), ("śr. " + a).c_str());
+  - platform: homeassistant
+    id: ${uid}_hw
+    entity_id: ${homework_entity}
+    internal: true
+    on_value: { script.execute: "${uid}_info" }
+  - platform: homeassistant
+    id: ${uid}_msg
+    entity_id: ${msg_entity}
+    attribute: liczba_nieprzeczytanych
+    internal: true
+    on_value: { script.execute: "${uid}_info" }
+
+script:
+  - id: ${uid}_info
+    then:
+      - lambda: |-
+          std::string t, l = id(${uid}_lucky).state, nr = id(${uid}_nr).state;
+          bool lucky_ok = !l.empty() && l != "?" && l != "unknown" && l != "unavailable";
+          if (lucky_ok) {
+            t = "Numerek " + l;
+            if (!nr.empty() && atoi(nr.c_str()) > 0 && atoi(nr.c_str()) == atoi(l.c_str())) t += " – to Ty!";
+          }
+          float hw = id(${uid}_hw).state, m = id(${uid}_msg).state;
+          if (!isnan(hw) && hw > 0) { if (!t.empty()) t += " · "; t += "zadania: " + std::to_string((int) hw); }
+          if (!isnan(m) && m > 0) { if (!t.empty()) t += " · "; t += "wiadomości: " + std::to_string((int) m); }
+          lv_label_set_text(id(${uid}_infol), t.c_str());
+
+  - id: ${uid}_fetch
+    mode: single
+    then:
+      - homeassistant.action:
+          action: calendar.get_events
+          data:
+            entity_id: ${plan_calendar}
+          data_template:
+            start_date_time: "{{ now().isoformat() }}"
+            end_date_time: "{{ (today_at('00:00') + timedelta(days=8)).isoformat() }}"
+          capture_response: true
+          on_success:
+            - lambda: |-
+                JsonArrayConst ev = response["${plan_calendar}"]["events"].as<JsonArrayConst>();
+                std::vector<z2z::Lesson> all;
+                for (JsonObjectConst e : ev) {
+                  uint32_t s = z2z::iso_ts(e["start"] | ""), k = z2z::iso_ts(e["end"] | "");
+                  if (!s || !k) continue;
+                  all.push_back({s, k, std::string((const char *) (e["summary"] | ""))});
+                }
+                std::sort(all.begin(), all.end(), [](const z2z::Lesson &a, const z2z::Lesson &b) { return a.start < b.start; });
+                id(${uid}_lessons) = all;
+      - script.execute: ${uid}_draw
+
+  - id: ${uid}_draw
+    then:
+      - lambda: |-
+          uint32_t now = z2z::now_ts();
+          auto &all = id(${uid}_lessons);
+          // najbliższy dzień: dzień pierwszej lekcji, która jeszcze się nie skończyła
+          int day = -1;
+          for (auto &L : all) if (L.end > now) { day = z2z::local_yday(L.start); break; }
+          std::string list; int n = 0; uint32_t first = 0;
+          for (auto &L : all) {
+            if (z2z::local_yday(L.start) != day || L.end <= now) continue;
+            if (!first) first = L.start;
+            if (n++ >= 8) continue;
+            if (!list.empty()) list += "\n";
+            list += z2z::hhmm(L.start) + "  " + L.name;
+          }
+          std::string hdr = "Plan";
+          if (day >= 0 && now) {
+            int today = z2z::local_yday(now);
+            static const char *const DN[] = {"niedziela", "poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota"};
+            time_t tf = first; struct tm l{}; localtime_r(&tf, &l);
+            if (day == today) hdr = "Plan – dziś";
+            else if (day == today + 1) hdr = "Plan – jutro";
+            else hdr = std::string("Plan – ") + DN[l.tm_wday];
+          }
+          lv_label_set_text(id(${uid}_planh), hdr.c_str());
+          lv_label_set_text(id(${uid}_plan), list.empty() ? "Brak lekcji w najbliższych dniach" : list.c_str());
+
+interval:
+  - interval: 15min
+    then:
+      - script.execute: ${uid}_fetch
+  - interval: 60s
+    then:
+      - script.execute: ${uid}_draw
+
+api:
+  on_client_connected:
+    - delay: 40s
+    - script.execute: ${uid}_fetch
+
+lvgl:
+  pages:
+    - id: !extend page_school
+      widgets:
+        - obj:
+            styles: card_style
+            width: 385
+            height: 350
+            scrollable: false
+            pad_all: 12
+            widgets:
+              - label: { align: TOP_LEFT, text_font: f22, text: "${name}" }
+              - label: { id: "${uid}_avgl", align: TOP_RIGHT, text_font: f22, text_color: c_accent, text: "" }
+              - label: { id: "${uid}_last", align: TOP_LEFT, y: 32, width: 360, long_mode: DOT, text_font: f16, text: "" }
+              - label: { id: "${uid}_planh", align: TOP_LEFT, y: 62, text_font: f16, text_color: c_muted, text: "Plan" }
+              - label: { id: "${uid}_plan", align: TOP_LEFT, y: 86, width: 360, height: 176, long_mode: CLIP, text_font: f16, text: "" }
+              - label: { id: "${uid}_testl", align: BOTTOM_LEFT, y: -22, width: 360, long_mode: DOT, text_font: f14, text_color: c_muted, text: "" }
+              - label: { id: "${uid}_infol", align: BOTTOM_LEFT, width: 360, long_mode: DOT, text_font: f14, text_color: c_muted, text: "" }

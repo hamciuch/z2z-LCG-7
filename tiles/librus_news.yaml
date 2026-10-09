@@ -1,11 +1,13 @@
 # Nowości z Librusa na Teraz: nowe oceny, nieprzeczytane wiadomości, nowa uwaga.
-# Oceny i wiadomości znikają, gdy Librus przestanie je zgłaszać jako nowe;
-# nowa uwaga – po dotknięciu kafelka.
+# Dotknięcie przenosi na pulpit Szkoła i chowa kafelek; wróci dopiero przy
+# kolejnej nowej ocenie / wiadomości / uwadze (panel pamięta, co już widziałeś).
 # vars: uid, name, grades_entity (atrybut sa_nowe_oceny), msg_entity (atrybut liczba_nieprzeczytanych),
 #       notes_entity (stan = liczba uwag)
 globals:
   - { id: "${uid}_notes_seen", type: int, restore_value: true, initial_value: "-1" }
   - { id: "${uid}_note_new", type: bool, restore_value: true, initial_value: "false" }
+  - { id: "${uid}_seen_grades", type: int, restore_value: true, initial_value: "-1" }   # liczba ocen przy ostatnim obejrzeniu
+  - { id: "${uid}_seen_msgs", type: int, restore_value: true, initial_value: "0" }      # nieprzeczytane przy ostatnim obejrzeniu
 
 text_sensor:
   - platform: homeassistant
@@ -16,6 +18,11 @@ text_sensor:
     on_value: { script.execute: "${uid}_draw" }
 
 sensor:
+  - platform: homeassistant
+    id: ${uid}_gc
+    entity_id: ${grades_entity}
+    internal: true
+    on_value: { script.execute: "${uid}_draw" }
   - platform: homeassistant
     id: ${uid}_m
     entity_id: ${msg_entity}
@@ -39,9 +46,13 @@ script:
     then:
       - lambda: |-
           std::string g = z2z::lower(id(${uid}_g).state);
-          bool grades = g == "true" || g == "on" || g == "1";
+          float gc = id(${uid}_gc).state;
+          int gcount = isnan(gc) ? -1 : (int) gc;
+          bool grades = (g == "true" || g == "on" || g == "1") && gcount != id(${uid}_seen_grades);
           float mv = id(${uid}_m).state;
           int msgs = isnan(mv) ? 0 : (int) mv;
+          if (msgs < id(${uid}_seen_msgs)) id(${uid}_seen_msgs) = msgs;   // przeczytane w Librusie
+          msgs = msgs > id(${uid}_seen_msgs) ? msgs : 0;
           bool note = id(${uid}_note_new);
           std::string t;
           if (grades) t = "nowe oceny";
@@ -64,7 +75,11 @@ lvgl:
             on_click:
               - lambda: |-
                   id(${uid}_note_new) = false;
+                  float gc = id(${uid}_gc).state, mv = id(${uid}_m).state;
+                  id(${uid}_seen_grades) = isnan(gc) ? -1 : (int) gc;
+                  id(${uid}_seen_msgs) = isnan(mv) ? 0 : (int) mv;
               - script.execute: ${uid}_draw
+              - script.execute: { id: goto_page, idx: 8 }
             widgets:
               - label: { align: LEFT_MID, text_font: i32, text_color: c_accent, text: $ic_star_circle }
               - label: { align: TOP_LEFT, x: 58, width: 222, long_mode: DOT, text_font: f18, text: "Librus: ${name}" }

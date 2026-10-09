@@ -120,7 +120,7 @@ lvgl:
           widgets:
             - button:
                 id: nav0
-                width: 94
+                width: 86
                 height: 48
                 radius: 12
                 bg_color: 0x16294A
@@ -135,7 +135,7 @@ lvgl:
             - button:
                 id: nav1
                 hidden: "${hide_page_lights}"
-                width: 94
+                width: 86
                 height: 48
                 radius: 12
                 bg_color: 0x16294A
@@ -150,7 +150,7 @@ lvgl:
             - button:
                 id: nav2
                 hidden: "${hide_page_sockets}"
-                width: 94
+                width: 86
                 height: 48
                 radius: 12
                 bg_color: 0x16294A
@@ -165,7 +165,7 @@ lvgl:
             - button:
                 id: nav3
                 hidden: "${hide_page_heating}"
-                width: 94
+                width: 86
                 height: 48
                 radius: 12
                 bg_color: 0x16294A
@@ -180,7 +180,7 @@ lvgl:
             - button:
                 id: nav4
                 hidden: "${hide_page_car}"
-                width: 94
+                width: 86
                 height: 48
                 radius: 12
                 bg_color: 0x16294A
@@ -195,7 +195,7 @@ lvgl:
             - button:
                 id: nav5
                 hidden: "${hide_page_vacuum}"
-                width: 94
+                width: 86
                 height: 48
                 radius: 12
                 bg_color: 0x16294A
@@ -210,7 +210,7 @@ lvgl:
             - button:
                 id: nav6
                 hidden: "${hide_page_appliances}"
-                width: 94
+                width: 86
                 height: 48
                 radius: 12
                 bg_color: 0x16294A
@@ -225,7 +225,7 @@ lvgl:
             - button:
                 id: nav7
                 hidden: "${hide_page_plants}"
-                width: 94
+                width: 86
                 height: 48
                 radius: 12
                 bg_color: 0x16294A
@@ -237,6 +237,21 @@ lvgl:
                 widgets:
                   - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_sprout }
                   - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Rośliny" }
+            - button:
+                id: nav8
+                hidden: "${hide_page_school}"
+                width: 86
+                height: 48
+                radius: 12
+                bg_color: 0x16294A
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: { id: goto_page, idx: 8 }
+                widgets:
+                  - label: { align: TOP_MID, y: 2, text_font: i24, text_color: c_muted, text: $ic_school }
+                  - label: { align: BOTTOM_MID, y: -1, text_font: f14, text_color: c_muted, text: "Szkoła" }
 
 sensor:
   # Serwer: działa, gdy pobór mocy z gniazdka > server_power_min [W]

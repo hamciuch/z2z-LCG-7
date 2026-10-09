@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <cstdint>
 #include <ctime>
+#include <vector>
+#include <algorithm>
 #include "lvgl.h"
 
 namespace z2z {
@@ -421,6 +423,33 @@ inline std::string since(uint32_t start) {
   if (m >= 60) snprintf(b, sizeof b, "%u h %02u min", m / 60, m % 60);
   else snprintf(b, sizeof b, "%u min", m);
   return b;
+}
+
+
+// Lekcja z kalendarza planu (pulpit Szkoła)
+struct Lesson { uint32_t start; uint32_t end; std::string name; };
+
+// Wyciąga wartość klucza z atrybutu-słownika przekazanego przez HA jako tekst
+// (JSON {"k": "v"} albo repr Pythona {'k': 'v'}); "" gdy brak.
+inline std::string dict_get(const std::string &d, const char *key) {
+  std::string k1 = std::string("'") + key + "'", k2 = std::string("\"") + key + "\"";
+  size_t p = d.find(k1);
+  if (p == std::string::npos) p = d.find(k2);
+  if (p == std::string::npos) return "";
+  p = d.find(':', p);
+  if (p == std::string::npos) return "";
+  p++;
+  while (p < d.size() && d[p] == ' ') p++;
+  if (p >= d.size()) return "";
+  char q = d[p];
+  if (q == '\'' || q == '"') {
+    size_t e = d.find(q, p + 1);
+    return e == std::string::npos ? "" : d.substr(p + 1, e - p - 1);
+  }
+  size_t e = d.find_first_of(",}", p);
+  std::string v = d.substr(p, e == std::string::npos ? std::string::npos : e - p);
+  while (!v.empty() && v.back() == ' ') v.pop_back();
+  return v == "None" || v == "null" ? "" : v;
 }
 
 }  // namespace z2z

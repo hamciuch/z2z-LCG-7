@@ -55,6 +55,7 @@ substitutions:
   hide_page_vacuum: "false"
   hide_page_appliances: "false"
   hide_page_plants: "false"
+  hide_page_school: "false"
 
 packages:
   # ── Domownicy (belka, max 4: slot 0-3) ─────────────────────────────────────
@@ -101,6 +102,14 @@ packages:
 
   # ── Wyjazd: wszyscy daleko (>50 km) ──────────────────────────────────────
   trip: !include { file: ../tiles/trip.yaml, vars: { uid: trip, entity: binary_sensor.wszyscy_daleko_50km } }
+
+  # ── Pulpit 8: SZKOŁA (Gabrysia | Wiktor) ─────────────────────────────────
+  sch_gabi: !include
+    file: ../tiles/school_kid.yaml
+    vars: { uid: sch_gabi, name: "Gabrysia", plan_calendar: calendar.dom_librus_gabriela_sobilo_plan_lekcji, avg_entity: sensor.szkola_librus_gabriela_sobilo_srednia_ocen, grades_entity: sensor.librus_gabriela_sobilo_wszystkie_oceny, student_entity: sensor.dom_librus_gabriela_sobilo_uczen, lucky_entity: sensor.dom_librus_gabriela_sobilo_szczesliwy_numerek, homework_entity: sensor.librus_gabriela_sobilo_zadania_domowe, test_entity: sensor.szkola_librus_gabriela_sobilo_najblizsza_kartkowka_lub_klasowka, msg_entity: sensor.szkola_librus_gabriela_sobilo_wiadomosci }
+  sch_wik: !include
+    file: ../tiles/school_kid.yaml
+    vars: { uid: sch_wik, name: "Wiktor", plan_calendar: calendar.librus_wiktor_sobilo_plan_lekcji, avg_entity: sensor.librus_wiktor_sobilo_srednia_ocen, grades_entity: sensor.librus_wiktor_sobilo_wszystkie_oceny, student_entity: sensor.librus_wiktor_sobilo_uczen, lucky_entity: sensor.librus_wiktor_sobilo_szczesliwy_numerek_2, homework_entity: sensor.librus_wiktor_sobilo_zadania_domowe, test_entity: sensor.librus_wiktor_sobilo_najblizsza_kartkowka_lub_klasowka, msg_entity: sensor.librus_wiktor_sobilo_wiadomosci }
 
   # ── Plan dzieci (Z2Z Librus + zajęcia dodatkowe) – kafelek na Teraz ───────
   kid_gabi: !include { file: ../tiles/kid_plan.yaml, vars: { uid: kid_gabi, name: "Gabrysia", plan_calendar: calendar.dom_librus_gabriela_sobilo_plan_lekcji, extra_calendar: calendar.gabi_zajecia_dodatkowe } }
