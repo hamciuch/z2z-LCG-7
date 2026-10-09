@@ -1,9 +1,9 @@
 # Pulpit "Szkoła": kolumna jednego dziecka.
 #  - średnia ze wszystkich ocen i ostatnia ocena z przedmiotem
 #  - plan lekcji na najbliższy dzień szkolny; lekcje, które się skończyły, znikają
-#  - na dole: najbliższy sprawdzian, szczęśliwy numerek (z "to Ty!"), zadania domowe, wiadomości
-# vars: uid, name, plan_calendar, avg_entity, grades_entity (atrybut latest), student_entity (atrybut number),
-#       lucky_entity, homework_entity, test_entity, msg_entity (atrybut liczba_nieprzeczytanych)
+#  - na dole: najbliższy sprawdzian, zadania domowe, wiadomości
+# vars: uid, name, plan_calendar, avg_entity, grades_entity (atrybut latest),
+#       homework_entity, test_entity, msg_entity (atrybut liczba_nieprzeczytanych)
 globals:
   - { id: "${uid}_lessons", type: "std::vector<z2z::Lesson>" }
 
@@ -15,28 +15,21 @@ text_sensor:
     internal: true
     on_value:
       - lambda: |-
-          std::string g = z2z::dict_get(x, "grade");
-          if (g.empty()) g = z2z::dict_get(x, "value");
-          if (g.empty()) g = z2z::dict_get(x, "ocena");
-          if (g.empty()) g = z2z::dict_get(x, "symbol");
-          std::string s = z2z::dict_get(x, "subject");
-          if (s.empty()) s = z2z::dict_get(x, "przedmiot");
-          if (s.empty()) s = z2z::dict_get(x, "lesson");
+          // np. {'subject_name': 'język angielski', 'display_value': '3', 'category_name': 'Sprawdzian', 'label': None, 'date': '2026-10-09', …}
+          std::string g = z2z::dict_get(x, "display_value");
+          std::string lab = z2z::dict_get(x, "label");
+          std::string sub = z2z::dict_get(x, "subject_name");
+          std::string cat = z2z::dict_get(x, "category_name");
+          std::string d = z2z::dict_get(x, "date");
           std::string t;
-          if (!g.empty() || !s.empty()) t = "Ostatnia ocena: " + g + (s.empty() ? "" : " · " + s);
-          else if (!x.empty() && x != "unknown" && x != "None") t = "Ostatnia ocena: " + x.substr(0, 60);
+          if (!g.empty()) {
+            t = "Ostatnia: " + g;
+            if (!lab.empty()) t += " (" + lab + ")";
+            if (!sub.empty()) t += " · " + sub;
+            if (!cat.empty() && cat.rfind("Ocena", 0) != 0) t += " · " + cat;
+            if (d.size() >= 10) t += " · " + d.substr(8, 2) + "." + d.substr(5, 2);
+          }
           lv_label_set_text(id(${uid}_last), t.c_str());
-  - platform: homeassistant
-    id: ${uid}_nr
-    entity_id: ${student_entity}
-    attribute: number
-    internal: true
-    on_value: { script.execute: "${uid}_info" }
-  - platform: homeassistant
-    id: ${uid}_lucky
-    entity_id: ${lucky_entity}
-    internal: true
-    on_value: { script.execute: "${uid}_info" }
   - platform: homeassistant
     id: ${uid}_test
     entity_id: ${test_entity}
@@ -73,12 +66,7 @@ script:
   - id: ${uid}_info
     then:
       - lambda: |-
-          std::string t, l = id(${uid}_lucky).state, nr = id(${uid}_nr).state;
-          bool lucky_ok = !l.empty() && l != "?" && l != "unknown" && l != "unavailable";
-          if (lucky_ok) {
-            t = "Numerek " + l;
-            if (!nr.empty() && atoi(nr.c_str()) > 0 && atoi(nr.c_str()) == atoi(l.c_str())) t += " – to Ty!";
-          }
+          std::string t;
           float hw = id(${uid}_hw).state, m = id(${uid}_msg).state;
           if (!isnan(hw) && hw > 0) { if (!t.empty()) t += " · "; t += "zadania: " + std::to_string((int) hw); }
           if (!isnan(m) && m > 0) { if (!t.empty()) t += " · "; t += "wiadomości: " + std::to_string((int) m); }
