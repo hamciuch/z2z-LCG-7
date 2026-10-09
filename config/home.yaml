@@ -68,7 +68,8 @@ packages:
   leak_pr: !include { file: ../tiles/leak.yaml, vars: { uid: leak_pr, name: "Pralnia",       entity: binary_sensor.pr_czujnik_zalania_water_leak } }
   leak_kc: !include { file: ../tiles/leak.yaml, vars: { uid: leak_kc, name: "Kuchnia – filtr", entity: binary_sensor.kc_filtr_kuna_water_leak } }
   door_wj: !include { file: ../tiles/contact.yaml, vars: { uid: door_wj, name: "Drzwi wejściowe", icon: $ic_door_open, entity: binary_sensor.wejscie_myggbett_door_window_sensor_drzwi, battery_entity: sensor.wejscie_myggbett_door_window_sensor_bateria, rain_check: "false" } }
-  win_sn:  !include { file: ../tiles/window.yaml, vars: { uid: win_sn, name: "Okno salon",        icon: $ic_window_open_variant, entity: binary_sensor.sn_salon_okno_contact, battery_entity: sensor.sn_salon_okno_battery, rain_check: "true", climate_entity: climate.sn_thermostat } }
+  # WYŁĄCZONE: czujnik okna w salonie pokazuje błędnie – włącz z powrotem po naprawie
+  # win_sn:  !include { file: ../tiles/window.yaml, vars: { uid: win_sn, name: "Okno salon",        icon: $ic_window_open_variant, entity: binary_sensor.sn_salon_okno_contact, battery_entity: sensor.sn_salon_okno_battery, rain_check: "true", climate_entity: climate.sn_thermostat } }
   win_sp:  !include { file: ../tiles/window.yaml, vars: { uid: win_sp, name: "Okno sypialnia",    icon: $ic_window_open_variant, entity: binary_sensor.sp_okno_contact,       battery_entity: sensor.sp_okno_battery,       rain_check: "true", climate_entity: climate.sp_thermostat } }
   win_pd:  !include { file: ../tiles/window.yaml, vars: { uid: win_pd, name: "Okno pokój dzieci", icon: $ic_window_open_variant, entity: binary_sensor.pd_okno_contact,       battery_entity: sensor.pd_okno_battery,       rain_check: "true", climate_entity: climate.pd_themostat } }
 
