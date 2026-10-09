@@ -1,0 +1,55 @@
+# Kafelek na pulpicie "Teraz": serwer gry (np. Minecraft) – widoczny tylko,
+# gdy serwer działa, z liczbą graczy online. Dotknięcie = pulpit Gniazdka.
+# vars: uid, name, icon, status_entity (binary_sensor, on = działa), players_entity
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_st
+    entity_id: ${status_entity}
+    internal: true
+    on_value:
+      - lambda: z2z::set_visible(id(${uid}_tile), x == "on");
+      - script.execute: home_refresh
+
+sensor:
+  - platform: homeassistant
+    id: ${uid}_n
+    entity_id: ${players_entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          std::string t = isnan(x) ? std::string("online") : z2z::players((int) x);
+          lv_label_set_text(id(${uid}_sub), t.c_str());
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: tile_style
+            hidden: true
+            on_click:
+              - script.execute: { id: goto_page, idx: 2 }
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text_font: i32
+                  text_color: c_accent
+                  text: "${icon}"
+              - label:
+                  align: BOTTOM_LEFT
+                  y: -20
+                  width: 126
+                  long_mode: DOT
+                  height: 24
+                  text_font: f16
+                  text: "${name}"
+              - label:
+                  id: ${uid}_sub
+                  align: BOTTOM_LEFT
+                  width: 126
+                  long_mode: DOT
+                  height: 22
+                  text_font: f14
+                  text_color: c_muted
+                  text: "online"

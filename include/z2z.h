@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
+#include <ctime>
 #include "lvgl.h"
 
 namespace z2z {
@@ -193,6 +194,170 @@ inline std::string remaining(const std::string &raw, int64_t now_utc) {
   if (mins >= 60) snprintf(b, sizeof(b), "%d h %02d min", mins / 60, mins % 60);
   else snprintf(b, sizeof(b), "%d min", mins);
   return b;
+}
+
+
+// ── Strefy (zone): nazwa ikony MDI (bez "mdi:") → znak z fontu i32 ─────────────
+// Lista musi odpowiadać glifom zone_glyphs w core/theme.yaml (generuje tools/).
+struct NamedGlyph { const char *name; const char *glyph; };
+static const NamedGlyph ZONE_ICONS[] = {
+    {"home", "\xF3\xB0\x8B\x9C"},
+    {"home-heart", "\xF3\xB0\xA0\xA7"},
+    {"home-variant", "\xF3\xB0\x8B\x9E"},
+    {"home-city", "\xF3\xB0\xB4\x95"},
+    {"home-group", "\xF3\xB0\xB7\x94"},
+    {"briefcase", "\xF3\xB0\x83\x96"},
+    {"office-building", "\xF3\xB0\xA6\x91"},
+    {"domain", "\xF3\xB0\x87\x97"},
+    {"school", "\xF3\xB0\x91\xB4"},
+    {"school-outline", "\xF3\xB1\x86\x80"},
+    {"cart", "\xF3\xB0\x84\x90"},
+    {"shopping", "\xF3\xB0\x92\x9A"},
+    {"store", "\xF3\xB0\x93\x9C"},
+    {"dumbbell", "\xF3\xB0\x87\xA6"},
+    {"weight-lifter", "\xF3\xB1\x85\x9D"},
+    {"hospital-building", "\xF3\xB0\x8B\xA1"},
+    {"hospital-box", "\xF3\xB0\x8B\xA0"},
+    {"medical-bag", "\xF3\xB0\x9B\xAF"},
+    {"stethoscope", "\xF3\xB0\x93\x99"},
+    {"airplane", "\xF3\xB0\x80\x9D"},
+    {"airport", "\xF3\xB0\xA1\x8B"},
+    {"beach", "\xF3\xB0\x82\x92"},
+    {"palm-tree", "\xF3\xB1\x81\x95"},
+    {"island", "\xF3\xB1\x81\x8F"},
+    {"pine-tree", "\xF3\xB0\x90\x85"},
+    {"tree", "\xF3\xB0\x94\xB1"},
+    {"forest", "\xF3\xB1\xA2\x97"},
+    {"church", "\xF3\xB0\x85\x84"},
+    {"silverware-fork-knife", "\xF3\xB0\xA9\xB0"},
+    {"food", "\xF3\xB0\x89\x9A"},
+    {"coffee", "\xF3\xB0\x85\xB6"},
+    {"gas-station", "\xF3\xB0\x8A\x98"},
+    {"pool", "\xF3\xB0\x98\x86"},
+    {"swim", "\xF3\xB0\x93\xA3"},
+    {"soccer", "\xF3\xB0\x92\xB8"},
+    {"basketball", "\xF3\xB0\xA0\x86"},
+    {"tennis", "\xF3\xB0\xB6\xA0"},
+    {"run", "\xF3\xB0\x9C\x8E"},
+    {"bike", "\xF3\xB0\x82\xA3"},
+    {"account-group", "\xF3\xB0\xA1\x89"},
+    {"human-male-female-child", "\xF3\xB1\xA0\xA3"},
+    {"baby-carriage", "\xF3\xB0\x9A\x8F"},
+    {"teddy-bear", "\xF3\xB1\xA3\xBB"},
+    {"car", "\xF3\xB0\x84\x8B"},
+    {"train", "\xF3\xB0\x94\xAC"},
+    {"bus", "\xF3\xB0\x83\xA7"},
+    {"bank", "\xF3\xB0\x81\xB0"},
+    {"theater", "\xF3\xB0\x94\x8D"},
+    {"music", "\xF3\xB0\x9D\x9A"},
+    {"book-open-variant", "\xF3\xB1\x93\xB7"},
+    {"library", "\xF3\xB0\x8C\xB1"},
+    {"factory", "\xF3\xB0\x88\x8F"},
+    {"warehouse", "\xF3\xB0\xBE\x81"},
+    {"city", "\xF3\xB0\x85\x86"},
+    {"castle", "\xF3\xB0\x84\x9A"},
+    {"heart", "\xF3\xB0\x8B\x91"},
+    {"star", "\xF3\xB0\x93\x8E"},
+    {"map-marker", "\xF3\xB0\x8D\x8E"},
+    {"parking", "\xF3\xB0\x8F\xA3"},
+    {"dog", "\xF3\xB0\xA9\x83"},
+    {"paw", "\xF3\xB0\x8F\xA9"},
+    {"campfire", "\xF3\xB0\xBB\x9D"},
+    {"tent", "\xF3\xB0\x94\x88"},
+    {"ski", "\xF3\xB1\x8C\x84"},
+    {"fish", "\xF3\xB0\x88\xBA"},
+    {"golf", "\xF3\xB0\xA0\xA3"},
+    {"baby-face-outline", "\xF3\xB0\xB9\xBD"},
+    {"account-heart", "\xF3\xB0\xA2\x99"},
+    {"human-cane", "\xF3\xB1\x96\x81"}
+};
+inline const char *zone_glyph(const std::string &name) {
+  for (auto &z : ZONE_ICONS)
+    if (name == z.name) return z.glyph;
+  return "\xF3\xB0\x8D\x8E";  // map-marker
+}
+
+// Wartość dla klucza z "a=x;b=y;" (np. stan sensora stref) – "" gdy brak
+inline std::string kv(const std::string &s, const std::string &key) {
+  size_t p = 0;
+  while (p < s.size()) {
+    size_t e = s.find(';', p);
+    if (e == std::string::npos) e = s.size();
+    size_t eq = s.find('=', p);
+    if (eq != std::string::npos && eq < e && s.compare(p, eq - p, key) == 0 && eq - p == key.size())
+      return s.substr(eq + 1, e - eq - 1);
+    p = e + 1;
+  }
+  return "";
+}
+
+// ── Pogoda: stan HA (condition) → ikona MDI i polski opis ────────────────────
+struct WeatherCond { const char *cond; const char *glyph; const char *text; };
+static const WeatherCond WEATHER[] = {
+    {"clear-night", "\xF3\xB0\x96\x94", "pogodna noc"},
+    {"cloudy", "\xF3\xB0\x96\x90", "pochmurno"},
+    {"exceptional", "\xF3\xB0\x97\x96", "ostrzeżenie"},
+    {"fog", "\xF3\xB0\x96\x91", "mgła"},
+    {"hail", "\xF3\xB0\x96\x92", "grad"},
+    {"lightning", "\xF3\xB0\x96\x93", "burza"},
+    {"lightning-rainy", "\xF3\xB0\x99\xBE", "burza z deszczem"},
+    {"partlycloudy", "\xF3\xB0\x96\x95", "częściowe zachm."},
+    {"pouring", "\xF3\xB0\x96\x96", "ulewa"},
+    {"rainy", "\xF3\xB0\x96\x97", "deszcz"},
+    {"snowy", "\xF3\xB0\x96\x98", "śnieg"},
+    {"snowy-rainy", "\xF3\xB0\x99\xBF", "deszcz ze śniegiem"},
+    {"sunny", "\xF3\xB0\x96\x99", "słonecznie"},
+    {"windy", "\xF3\xB0\x96\x9D", "wietrznie"},
+    {"windy-variant", "\xF3\xB0\x96\x9E", "wietrznie"}
+};
+inline const char *weather_glyph(const std::string &c) {
+  for (auto &w : WEATHER)
+    if (c == w.cond) return w.glyph;
+  return "\xF3\xB0\x96\x90";  // weather-cloudy
+}
+inline const char *weather_text(const std::string &c) {
+  for (auto &w : WEATHER)
+    if (c == w.cond) return w.text;
+  return "";
+}
+
+// Dzień tygodnia (0 = pn) z daty "RRRR-MM-DD…" (algorytm Sakamoto)
+inline int weekday_mon0(const char *iso) {
+  int y = atoi(iso), m = atoi(iso + 5), d = atoi(iso + 8);
+  if (y < 2000 || m < 1 || m > 12) return -1;
+  static const int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+  if (m < 3) y -= 1;
+  int w = (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;  // 0 = niedziela
+  return (w + 6) % 7;
+}
+
+// "1 gracz", "3 graczy"… – polska odmiana
+inline std::string players(int n) {
+  const char *w = "graczy";
+  if (n == 1) w = "gracz";
+  else if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) w = "gracze";
+  char b[32];
+  snprintf(b, sizeof b, "%d %s", n, w);
+  return b;
+}
+
+
+// ISO 8601 z HA ("2026-10-09T22:00:00+00:00") → czas lokalny (strefa z komponentu time)
+inline bool iso_local(const char *iso, struct tm *out) {
+  if (!iso || strlen(iso) < 10) return false;
+  int y = atoi(iso), m = atoi(iso + 5), d = atoi(iso + 8), hh = 0, mi = 0, off = 0;
+  if (strlen(iso) >= 16) { hh = atoi(iso + 11); mi = atoi(iso + 14); }
+  if (strlen(iso) >= 25 && (iso[19] == '+' || iso[19] == '-'))
+    off = (iso[19] == '-' ? -1 : 1) * (atoi(iso + 20) * 60 + atoi(iso + 23));
+  // dni od 1970-01-01 (Howard Hinnant, days_from_civil)
+  int yy = y - (m <= 2);
+  int era = (yy >= 0 ? yy : yy - 399) / 400;
+  unsigned yoe = (unsigned) (yy - era * 400);
+  unsigned doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1;
+  unsigned doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+  long days = (long) era * 146097 + (long) doe - 719468;
+  time_t t = (time_t) days * 86400 + hh * 3600 + mi * 60 - off * 60;
+  return localtime_r(&t, out) != nullptr;
 }
 
 }  // namespace z2z

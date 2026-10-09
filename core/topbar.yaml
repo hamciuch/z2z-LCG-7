@@ -45,28 +45,44 @@ lvgl:
                       text_font: f18
                       text_color: c_muted
                       text: ""
-            # temperatura na balkonie
-            - label:
-                id: ico_temp
-                x: 540
+            # pogoda: ikona deszczu, temperatura, wilgotność i ciśnienie z balkonu;
+            # dotknięcie otwiera ekran prognozy
+            - button:
+                id: btn_weather
+                x: 532
                 align: LEFT_MID
-                text_font: i24
-                text_color: c_muted
-                text: $ic_thermometer
-            - label:
-                id: lbl_temp
-                x: 566
-                align: LEFT_MID
-                text_font: f28
-                text: "--°"
-            # deszcz
-            - label:
-                id: ico_rain
-                x: 664
-                align: LEFT_MID
-                text_font: i32
-                text_color: c_muted
-                text: $ic_cloud
+                width: 176
+                height: 56
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: weather_open
+                widgets:
+                  - label:
+                      id: ico_rain
+                      x: 2
+                      align: LEFT_MID
+                      text_font: i32
+                      text_color: c_muted
+                      text: $ic_cloud
+                  - label:
+                      id: lbl_temp
+                      x: 42
+                      y: 1
+                      align: TOP_LEFT
+                      text_font: f28
+                      text: "--°"
+                  - label:
+                      id: lbl_hp
+                      x: 42
+                      y: -3
+                      align: BOTTOM_LEFT
+                      width: 132
+                      long_mode: CLIP
+                      text_font: f14
+                      text_color: c_muted
+                      text: ""
             # serwer
             - label:
                 id: ico_server
@@ -244,6 +260,16 @@ sensor:
       - lvgl.label.update:
           id: lbl_temp
           text: !lambda return z2z::fmt(x, 1, "°");
+  - platform: homeassistant
+    id: ha_humidity
+    entity_id: ${humidity_entity}
+    on_value:
+      - script.execute: hp_refresh
+  - platform: homeassistant
+    id: ha_pressure
+    entity_id: ${pressure_entity}
+    on_value:
+      - script.execute: hp_refresh
 
 text_sensor:
   - platform: homeassistant
@@ -255,6 +281,15 @@ text_sensor:
           lv_label_set_text(id(ico_rain), rain ? "${ic_umbrella}" : "${ic_cloud}");
           z2z::set_text_color(id(ico_rain), rain ? 0x38BDF8 : z2z::C_MUTED);
 script:
+  - id: hp_refresh
+    then:
+      - lambda: |-
+          float h = id(ha_humidity).state, p = id(ha_pressure).state;
+          std::string t;
+          if (!isnan(h)) t += z2z::fmt(h, 0, "%");
+          if (!isnan(p)) t += (t.empty() ? "" : " · ") + z2z::fmt(p, 0, " hPa");
+          lv_label_set_text(id(lbl_hp), t.c_str());
+
   - id: clock_refresh
     then:
       - lambda: |-

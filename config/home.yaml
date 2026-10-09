@@ -15,6 +15,11 @@ substitutions:
   balcony_temp_entity: sensor.stacja_pogody_esp32_bme280_temperature   # SPRAWDŹ: stacja pogody na balkonie
   rain_entity: binary_sensor.tr_czujnik_deszczu_rain                    # on = pada
   rain_states: "on"
+  humidity_entity: sensor.stacja_pogody_esp32_bme280_humidity
+  pressure_entity: sensor.stacja_pogody_esp32_bme280_pressure
+  weather_entity: weather.forecast_dom                                  # prognoza (dotknięcie pogody na belce)
+  # Pomocnik-szablon w HA z ikonami stref: "marek=home;ania=briefcase;…" (README)
+  zones_entity: sensor.lokalizacja                                      # SPRAWDŹ: nazwa pomocnika
   # serwer: działa, gdy gniazdko Tasmota-Server pobiera > server_power_min W
   server_power_entity: sensor.tasmota_server_energy_power
   server_power_min: "20"
@@ -63,6 +68,7 @@ packages:
   l_pr:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_pr,   name: "Pralnia",    icon: $ic_lightbulb, entity: light.pr_swiatlo } }
   l_girlanda:   !include { file: ../tiles/active_light.yaml, vars: { uid: l_girlanda, name: "Girlanda", icon: $ic_string_lights, entity: switch.tasmota_tasmota2 } }
   # Telewizory / konsola (media_player: widoczny gdy nie jest off/standby)
+  minecraft:    !include { file: ../tiles/game_server.yaml, vars: { uid: minecraft, name: "Minecraft", icon: $ic_minecraft, status_entity: binary_sensor.192_168_23_11_25565_status, players_entity: sensor.192_168_23_11_25565_players_online } }
   tv_salon:     !include { file: ../tiles/active.yaml, vars: { uid: tv_salon, name: "TV salon",     icon: $ic_television, entity: media_player.telewizor_2 } }   # SPRAWDŹ: telewizor / _2 / _3
   tv_sp:        !include { file: ../tiles/active.yaml, vars: { uid: tv_sp,    name: "TV sypialnia", icon: $ic_television, entity: media_player.living_room_ue40h6700 } }
   ps5:          !include { file: ../tiles/active.yaml, vars: { uid: ps5,      name: "PS5",          icon: $ic_gamepad,    entity: media_player.playstation_5 } }
@@ -128,6 +134,7 @@ packages:
   so_server:  !include { file: ../tiles/socket.yaml, vars: { uid: so_server,  name: "Serwer",           icon: $ic_server,          entity: switch.tasmota_server,          power_entity: sensor.tasmota_server_energy_power,      mode: readonly } }
   so_stacja:  !include { file: ../tiles/socket.yaml, vars: { uid: so_stacja,  name: "Stacja pogody",    icon: $ic_thermometer,     entity: switch.balkon_stacja_pogody,    power_entity: sensor.balkon_energy_power,              mode: toggle } }
   so_balkon:  !include { file: ../tiles/socket.yaml, vars: { uid: so_balkon,  name: "Balkon wolny",     icon: $ic_socket,          entity: switch.balkon_wolny,            power_entity: sensor.balkon_energy_power,              mode: toggle } }
+  so_mc:      !include { file: ../tiles/vm_switch.yaml, vars: { uid: so_mc,     name: "Minecraft",        icon: $ic_minecraft,       entity: switch.esxi_vm,                 status_entity: sensor.esxi_vm_status_text,             mode: confirm } }
   so_taras:   !include { file: ../tiles/socket.yaml, vars: { uid: so_taras,   name: "Taras wolny",      icon: $ic_socket,          entity: switch.tasmota_3,               power_entity: sensor.tasmota_energy_power,             mode: toggle } }
 
   # ── Pulpit 3: OGRZEWANIE (głowice + czujniki Zigbee w pokojach) ────────────

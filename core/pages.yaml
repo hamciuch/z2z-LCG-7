@@ -1,6 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Pulpity (strony LVGL), nawigacja dolnym paskiem ikon, wygaszanie ekranu.
 #   0 Teraz · 1 Światła · 2 Gniazdka · 3 Ogrzewanie · 4 Auto · 5 Odkurzacz · 6 AGD · 7 Rośliny
+#   (+ Pogoda: bez ikony na dole, otwierana z belki)
 # Kafelki z tiles/*.yaml dopisują się do stron przez `!extend page_xxx`.
 # Numery pulpitów używa "goto" w alertach i akcja API show_page.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -117,6 +118,16 @@ lvgl:
       layout: *flex
       on_load:
         - script.execute: { id: dots_set, idx: 7 }
+
+    # Pogoda – poza dolnym paskiem, otwiera ją dotknięcie pogody na belce (core/weather.yaml)
+    - id: page_weather
+      skip: true
+      styles: page_style
+      scroll_dir: NONE
+      scrollable: false
+      layout: *flex
+      on_load:
+        - script.execute: { id: dots_set, idx: -1 }
 
 script:
   # Pokazuje / chowa napis "wszystko wyłączone" na pulpicie głównym

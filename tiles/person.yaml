@@ -1,4 +1,7 @@
-# Domownik na belce głównej. Zielony = w domu, szary = poza domem.
+# Domownik na belce głównej. Ikona = strefa, w której jest (zone):
+#   w domu – zielona ikona domu, w innej strefie – niebieska ikona tej strefy
+#   (z ustawień strefy w HA), poza strefami – szara sylwetka.
+# Ikony stref czyta z pomocnika HA ${zones_entity} ("marek=home;ania=briefcase;…").
 # vars: uid, entity (person.*), name, slot (0-3: pozycja na belce)
 text_sensor:
   - platform: homeassistant
@@ -6,11 +9,31 @@ text_sensor:
     entity_id: ${entity}
     internal: true
     on_value:
+      - script.execute: ${uid}_draw
+  - platform: homeassistant
+    id: ${uid}_zn
+    entity_id: ${zones_entity}
+    internal: true
+    on_value:
+      - script.execute: ${uid}_draw
+
+script:
+  - id: ${uid}_draw
+    then:
       - lambda: |-
-          bool home = x == "home";
-          lv_label_set_text(id(${uid}_ico), home ? "${ic_home_account}" : "${ic_account}");
-          z2z::set_text_color(id(${uid}_ico), home ? z2z::C_OK : 0x4A5468);
-          z2z::set_text_color(id(${uid}_name), home ? z2z::C_TEXT : 0x4A5468);
+          std::string st = id(${uid}_st).state;
+          std::string key = std::string("${entity}").substr(7);  // po "person."
+          std::string ic = z2z::kv(id(${uid}_zn).state, key);
+          bool home = st == "home";
+          bool away = !home && (st.empty() || st == "not_home" || st == "unknown" || st == "unavailable" || ic == "away");
+          const char *g;
+          uint32_t c;
+          if (home) { g = "${ic_home_account}"; c = z2z::C_OK; }
+          else if (away) { g = "${ic_account}"; c = 0x4A5468; }
+          else { g = ic.empty() ? z2z::zone_glyph("map-marker") : z2z::zone_glyph(ic); c = z2z::C_ACCENT; }
+          lv_label_set_text(id(${uid}_ico), g);
+          z2z::set_text_color(id(${uid}_ico), c);
+          z2z::set_text_color(id(${uid}_name), away ? 0x4A5468 : z2z::C_TEXT);
 
 lvgl:
   top_layer:
