@@ -43,7 +43,7 @@ text_sensor:
                   m: !lambda return id(${uid}_paused_mode);
             - lambda: id(${uid}_paused_mode) = "";
       - lambda: |-
-          z2z::set_visible(id(${uid}_tile), x == "on");
+          z2z::set_visible(id(${uid}_tile), x == "on" || x == "unavailable");
       - script.execute: ${uid}_draw
       - script.execute: home_refresh
   - platform: homeassistant
@@ -76,6 +76,12 @@ script:
     then:
       - lambda: |-
           bool open = id(${uid}_s).state == "on";
+          if (id(${uid}_s).state == "unavailable") {
+            lv_label_set_text(id(${uid}_sub), "brak sygnału");
+            lv_obj_set_style_border_color(id(${uid}_tile), lv_color_hex(z2z::C_MUTED), 0);
+            z2z::set_text_color(id(${uid}_ico), z2z::C_MUTED);
+            return;
+          }
           if (open && id(${uid}_since) == 0) id(${uid}_since) = z2z::now_ts();
           bool rain = ${rain_check} && open && z2z::in_list(id(ha_rain).state, "${rain_states}");
           std::string a = id(${uid}_act).state;

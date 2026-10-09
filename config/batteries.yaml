@@ -61,13 +61,15 @@ script:
           int low = 0; std::string list;
           for (size_t i = 0; i < sizeof(s) / sizeof(s[0]); i++) {
             float v = s[i]->state;
-            if (isnan(v) || v >= ${battery_low}) continue;
+            bool lost = isnan(v) && s[i]->has_state();     // HA podało "unavailable"
+            if (!lost && (isnan(v) || v >= ${battery_low})) continue;
             low++;
-            char b[80];
-            snprintf(b, sizeof b, "%s%s – %.0f%%", list.empty() ? "" : "\n", N[i], v);
+            char b[96];
+            if (lost) snprintf(b, sizeof b, "%s%s – brak sygnału", list.empty() ? "" : "\n", N[i]);
+            else snprintf(b, sizeof b, "%s%s – %.0f%%", list.empty() ? "" : "\n", N[i], v);
             list += b;
           }
-          lv_label_set_text_fmt(id(bat_alert_txt), low == 1 ? "1 czujnik: słaba bateria" : "%d czujników: słaba bateria", low);
+          lv_label_set_text_fmt(id(bat_alert_txt), low == 1 ? "1 czujnik: bateria / sygnał" : "%d czujników: bateria / sygnał", low);
           lv_label_set_text(id(bat_list), list.c_str());
           if (z2z::set_visible(id(bat_alert), low > 0)) id(wake_screen).execute();
       - script.execute: home_refresh
