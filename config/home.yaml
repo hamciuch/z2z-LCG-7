@@ -122,7 +122,7 @@ packages:
       printing_states: "running,prepare,pause,slicing,init"
 
   # Czujniki ruchu Satel – ruch wybudza ekran; 10 min bez ruchu i dotyku → wygaszenie.
-  ruch_wejscie: !include { file: ../tiles/motion_wake.yaml, vars: { uid: ruch_wejscie, entity: binary_sensor.wejscie } }
+  ruch_wejscie: !include { file: ../tiles/motion_wake.yaml, vars: { uid: ruch_wejscie, entity: binary_sensor.wejscie_myggbett_door_window_sensor_drzwi } }   # otwarcie drzwi budzi ekran
   ruch_salon:   !include { file: ../tiles/motion_wake.yaml, vars: { uid: ruch_salon,   entity: binary_sensor.salon_z_aneksem } }
   ruch_sp_dz:   !include { file: ../tiles/motion_wake.yaml, vars: { uid: ruch_sp_dz,   entity: binary_sensor.sypialnia_dzieci } }
   ruch_sp_gl:   !include { file: ../tiles/motion_wake.yaml, vars: { uid: ruch_sp_gl,   entity: binary_sensor.sypialnia_glowna } }
