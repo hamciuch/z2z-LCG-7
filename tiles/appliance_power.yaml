@@ -2,6 +2,7 @@
 #  - pracuje:   moc > threshold [W] → karta "Pracuje · 450 W · od 1 h 05 min" + kafelek na "Teraz"
 #  - skończyła: moc ≤ threshold przez finish_min minut → alert na "Teraz" ("wyjmij pranie"),
 #               znika po dotknięciu albo przy następnym uruchomieniu
+# Czas pracy liczony od zapisanego początku cyklu – nie znika po restarcie panelu.
 # Krótkie spadki mocy w trakcie (namaczanie, pauzy) nie kończą cyklu, jeśli są krótsze niż finish_min.
 # vars: uid, name, icon, entity, threshold, finish_min, finish_message
 globals:
@@ -16,8 +17,10 @@ globals:
   - id: ${uid}_last_above
     type: uint32_t
     initial_value: "0"
-  - id: ${uid}_start
+  # początek cyklu jako czas uniksowy – przetrwa restart panelu
+  - id: ${uid}_start_ts
     type: uint32_t
+    restore_value: true
     initial_value: "0"
 
 sensor:
@@ -28,7 +31,10 @@ sensor:
     on_value:
       - lambda: |-
           if (!isnan(x) && x > ${threshold}) {
-            if (!id(${uid}_running)) id(${uid}_start) = millis();
+            if (!id(${uid}_running) || id(${uid}_start_ts) == 0) {
+              id(${uid}_start_ts) = z2z::now_ts();
+              global_preferences->sync();   // zapis od razu, nie po 5 min
+            }
             id(${uid}_running) = true;
             id(${uid}_finished) = false;
             id(${uid}_last_above) = millis();
@@ -42,7 +48,7 @@ interval:
           if (id(${uid}_running)) {
             // po restarcie panelu liczymy od teraz
             if (id(${uid}_last_above) == 0) id(${uid}_last_above) = millis();
-            if (id(${uid}_start) == 0) id(${uid}_start) = millis();
+            if (id(${uid}_start_ts) == 0) id(${uid}_start_ts) = z2z::now_ts();
             if (millis() - id(${uid}_last_above) > (uint32_t) ${finish_min} * 60000UL) {
               id(${uid}_running) = false;
               id(${uid}_finished) = true;
@@ -59,7 +65,8 @@ script:
           float p = id(${uid}_p).state;
           char b[64];
           if (run) {
-            uint32_t m = (millis() - id(${uid}_start)) / 60000;
+            uint32_t now = z2z::now_ts(), st = id(${uid}_start_ts);
+            uint32_t m = (now && st && now >= st) ? (now - st) / 60 : 0;
             if (m >= 60) snprintf(b, sizeof(b), "%.0f W · od %u h %02u min", isnan(p) ? 0.f : p, m / 60, m % 60);
             else snprintf(b, sizeof(b), "%.0f W · od %u min", isnan(p) ? 0.f : p, m);
           } else {

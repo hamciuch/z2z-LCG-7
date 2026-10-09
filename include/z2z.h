@@ -364,4 +364,11 @@ inline bool iso_local(const char *iso, struct tm *out) {
   return localtime_r(&t, out) != nullptr;
 }
 
+
+// Bieżący czas uniksowy (ustawia go komponent time); 0, dopóki zegar nie jest zsynchronizowany
+inline uint32_t now_ts() {
+  time_t t = ::time(nullptr);
+  return t > 1700000000 ? (uint32_t) t : 0;
+}
+
 }  // namespace z2z
