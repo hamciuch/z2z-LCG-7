@@ -1,6 +1,6 @@
 # Baterie czujników – zbiorczy alert na Teraz, gdy któraś spadnie poniżej progu
 # (domyślnie 25% = "1 kreska", czerwona). Dotknięcie pokazuje listę.
-# Lista wygenerowana z HA (bez telefonów, auta i odkurzacza) – dopisuj kolejne wg wzoru.
+# Lista wygenerowana z HA (z tabletem Wiktora i telefonem Gabi; bez auta i odkurzacza) – dopisuj kolejne wg wzoru.
 substitutions:
   battery_low: "25"
 
@@ -49,6 +49,8 @@ sensor:
   - { platform: homeassistant, id: bw_41, entity_id: sensor.sp_pilot_biurko_battery, internal: true, on_value: { script.execute: bat_refresh } }
   - { platform: homeassistant, id: bw_42, entity_id: sensor.kc_pilot_do_drzwi_battery, internal: true, on_value: { script.execute: bat_refresh } }
   - { platform: homeassistant, id: bw_43, entity_id: sensor.tr_czujka_ruchu_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_44, entity_id: sensor.tablet_wiktor_battery_level, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_45, entity_id: sensor.gabi_s23_battery_level, internal: true, on_value: { script.execute: bat_refresh } }
 
 script:
   - id: bat_refresh
@@ -56,8 +58,8 @@ script:
     then:
       - delay: 2s
       - lambda: |-
-          sensor::Sensor *s[] = {id(bw_0), id(bw_1), id(bw_2), id(bw_3), id(bw_4), id(bw_5), id(bw_6), id(bw_7), id(bw_8), id(bw_9), id(bw_10), id(bw_11), id(bw_12), id(bw_13), id(bw_14), id(bw_15), id(bw_16), id(bw_17), id(bw_18), id(bw_19), id(bw_20), id(bw_21), id(bw_22), id(bw_23), id(bw_24), id(bw_25), id(bw_26), id(bw_27), id(bw_28), id(bw_29), id(bw_30), id(bw_31), id(bw_32), id(bw_33), id(bw_34), id(bw_35), id(bw_36), id(bw_37), id(bw_38), id(bw_39), id(bw_40), id(bw_41), id(bw_42), id(bw_43)};
-          static const char *const N[] = {"SP: Biurko Marek", "Aqara Smart Lock U200", "WJ: Drzwi Wejściowe", "PR: Czujnik Ruchu", "TR: Temp Xiaomi", "PD: Temperatura", "TL: Czujnik Ruchu", "GB: Czujka Ruchu", "SN: Temperatura", "KC: Przełącznik Eks-Cza", "LZ: Temperatura", "GB: Drukarka3D AMS", "GB: Drukarka3D Komora", "SP: Włącznik Komputer", "LZ: Czujnik Zalania", "PR: Czujnik Zalania", "PD: Okno", "GB: Włącznik Drukarki3D", "GB: Server", "SP: Temperatura", "KC: Filtr Kuna", "SN: Salon Okno", "PR: Temperatura", "SN: Kaktus", "SN: Paprotka", "SN: Sansewieria Gwinejska Duża", "SN: Sansewieria Gwinejska (Mała)", "SN: Sansewieria Gwinejska Okno", "SN: Filodendron", "PD: Pilot PC/OS", "PD: Wiktor", "TR: Czujnik Deszczu", "Niebieski przycisk", "SP: Okno", "SP: Thermostat", "SN: Thermostat", "TL: Czujka ruchu", "PD: Themostat", "SN: Hedera Eva", "SN: Fiucus Molcame", "LZ: Thermostat", "SP: Pilot Biurko", "KC: Pilot do Drzwi", "TR: Czujka ruchu"};
+          sensor::Sensor *s[] = {id(bw_0), id(bw_1), id(bw_2), id(bw_3), id(bw_4), id(bw_5), id(bw_6), id(bw_7), id(bw_8), id(bw_9), id(bw_10), id(bw_11), id(bw_12), id(bw_13), id(bw_14), id(bw_15), id(bw_16), id(bw_17), id(bw_18), id(bw_19), id(bw_20), id(bw_21), id(bw_22), id(bw_23), id(bw_24), id(bw_25), id(bw_26), id(bw_27), id(bw_28), id(bw_29), id(bw_30), id(bw_31), id(bw_32), id(bw_33), id(bw_34), id(bw_35), id(bw_36), id(bw_37), id(bw_38), id(bw_39), id(bw_40), id(bw_41), id(bw_42), id(bw_43), id(bw_44), id(bw_45)};
+          static const char *const N[] = {"SP: Biurko Marek", "Aqara Smart Lock U200", "WJ: Drzwi Wejściowe", "PR: Czujnik Ruchu", "TR: Temp Xiaomi", "PD: Temperatura", "TL: Czujnik Ruchu", "GB: Czujka Ruchu", "SN: Temperatura", "KC: Przełącznik Eks-Cza", "LZ: Temperatura", "GB: Drukarka3D AMS", "GB: Drukarka3D Komora", "SP: Włącznik Komputer", "LZ: Czujnik Zalania", "PR: Czujnik Zalania", "PD: Okno", "GB: Włącznik Drukarki3D", "GB: Server", "SP: Temperatura", "KC: Filtr Kuna", "SN: Salon Okno", "PR: Temperatura", "SN: Kaktus", "SN: Paprotka", "SN: Sansewieria Gwinejska Duża", "SN: Sansewieria Gwinejska (Mała)", "SN: Sansewieria Gwinejska Okno", "SN: Filodendron", "PD: Pilot PC/OS", "PD: Wiktor", "TR: Czujnik Deszczu", "Niebieski przycisk", "SP: Okno", "SP: Thermostat", "SN: Thermostat", "TL: Czujka ruchu", "PD: Themostat", "SN: Hedera Eva", "SN: Fiucus Molcame", "LZ: Thermostat", "SP: Pilot Biurko", "KC: Pilot do Drzwi", "TR: Czujka ruchu", "Tablet Wiktora", "Telefon Gabi"};
           int low = 0; std::string list;
           for (size_t i = 0; i < sizeof(s) / sizeof(s[0]); i++) {
             float v = s[i]->state;

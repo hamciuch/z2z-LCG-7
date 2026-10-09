@@ -89,12 +89,8 @@ packages:
   car_chg: !include { file: ../tiles/car_charge.yaml, vars: { uid: car_chg, plug_entity: binary_sensor.mg_hs_charging_gun_state_2, soc_entity: sensor.mg_hs_state_of_charge_2, remaining_entity: sensor.mg_hs_remaining_charging_time_2, status_entity: sensor.mg_hs_charging_status_2, low_soc: "30" } }
   car_tyres: !include { file: ../tiles/tyres.yaml, vars: { uid: car_tyres, fl: sensor.mg_hs_tyre_pressure_front_left_2, fr: sensor.mg_hs_tyre_pressure_front_right_2, rl: sensor.mg_hs_tyre_pressure_rear_left_2, rr: sensor.mg_hs_tyre_pressure_rear_right_2, min_bar: "2.0", max_diff: "0.3" } }
 
-  # ── Serwery i usługi z2z.pl, aktualizacje, garderoba z serwerem ──────────
-  svc_mqtt: !include { file: ../tiles/service.yaml, vars: { uid: svc_mqtt, name: "mqtt.z2z.pl", entity: sensor.mqtt_z2z_pl_status } }
-  svc_n8n:  !include { file: ../tiles/service.yaml, vars: { uid: svc_n8n,  name: "n8n.z2z.pl",  entity: sensor.n8n_z2z_pl_status } }
-  upd_nc: !include { file: ../tiles/alert_threshold.yaml, vars: { uid: upd_nc, entity: sensor.cloud_z2z_pl_updates_available, name: "Aktualizacje Nextcloud", message: "Nextcloud: są aktualizacje", icon: $ic_update, mode: above, threshold: 0, hysteresis: 0, unit: "", decimals: 0, min: 0, max: 100 } }
+  # ── Garderoba z serwerem: temperatura ─────────────────────────────────────
   gb_hot: !include { file: ../tiles/alert_threshold.yaml, vars: { uid: gb_hot, entity: sensor.gb_server_temperature, name: "Temperatura garderoby", message: "Garderoba (serwer): gorąco", icon: $ic_thermometer_alert, mode: above, threshold: 32, hysteresis: 1, unit: "°", decimals: 0, min: 0, max: 60 } }
-  ams_wet: !include { file: ../tiles/alert_threshold.yaml, vars: { uid: ams_wet, entity: sensor.gb_drukarka3d_ams_humidity, name: "Wilgotność AMS", message: "Filament w AMS: wilgotno", icon: $ic_water_percent, mode: above, threshold: 40, hysteresis: 2, unit: "%", decimals: 0, min: 0, max: 100 } }
 
   # ── Odkurzacz: części do wymiany ─────────────────────────────────────────
   vac_filter: !include { file: ../tiles/alert_threshold.yaml, vars: { uid: vac_filter, entity: sensor.x40_ultra_complete_filter_left, name: "Filtr odkurzacza", message: "Odkurzacz: wymień filtr", icon: $ic_air_filter, mode: below, threshold: 10, hysteresis: 2, unit: "%", decimals: 0, min: 0, max: 100 } }
@@ -102,9 +98,6 @@ packages:
   vac_side: !include { file: ../tiles/alert_threshold.yaml, vars: { uid: vac_side, entity: sensor.x40_ultra_complete_side_brush_left, name: "Szczotka boczna", message: "Odkurzacz: szczotka boczna", icon: $ic_air_filter, mode: below, threshold: 10, hysteresis: 2, unit: "%", decimals: 0, min: 0, max: 100 } }
   vac_sens: !include { file: ../tiles/alert_threshold.yaml, vars: { uid: vac_sens, entity: sensor.x40_ultra_complete_sensor_dirty_left, name: "Czujniki odkurzacza", message: "Odkurzacz: wyczyść czujniki", icon: $ic_air_filter, mode: below, threshold: 10, hysteresis: 2, unit: "%", decimals: 0, min: 0, max: 100 } }
 
-  # ── Tablet / telefon dzieci: słaba bateria ───────────────────────────────
-  tab_wik: !include { file: ../tiles/alert_threshold.yaml, vars: { uid: tab_wik, entity: sensor.tablet_wiktor_battery_level, name: "Tablet Wiktora", message: "Tablet Wiktora: naładuj", icon: $ic_tablet, mode: below, threshold: 15, hysteresis: 3, unit: "%", decimals: 0, min: 0, max: 100 } }
-  tel_gabi: !include { file: ../tiles/alert_threshold.yaml, vars: { uid: tel_gabi, entity: sensor.gabi_s23_battery_level, name: "Telefon Gabi", message: "Telefon Gabi: naładuj", icon: $ic_tablet, mode: below, threshold: 15, hysteresis: 3, unit: "%", decimals: 0, min: 0, max: 100 } }
 
   # ── Wyjazd: wszyscy daleko (>50 km) ──────────────────────────────────────
   trip: !include { file: ../tiles/trip.yaml, vars: { uid: trip, entity: binary_sensor.wszyscy_daleko_50km } }
