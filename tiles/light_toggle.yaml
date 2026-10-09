@@ -1,7 +1,7 @@
 # Pulpit "Światła": przełącznik światła (light.* albo switch.*).
 # Zapalone = bursztynowy kafelek, dotknięcie = przełącz (homeassistant.toggle).
 # Kafelek 148×112 – 5 w rzędzie, 15 mieści się (3×108 px) na ekranie.
-# vars: uid, entity, name, icon
+# vars: uid, entity, name, icon, use_ha_name ("true" = nazwa z opisu w HA, "false" = zawsze "name")
 # Nazwa na kafelku = opis (friendly_name) z HA; "name" to tylko zapas,
 # zanim HA odpowie.
 text_sensor:
@@ -26,7 +26,7 @@ text_sensor:
     internal: true
     on_value:
       - lambda: |-
-          if (!x.empty()) lv_label_set_text(id(${uid}_nm), x.c_str());
+          if (${use_ha_name} && !x.empty()) lv_label_set_text(id(${uid}_nm), x.c_str());
 
 lvgl:
   pages:

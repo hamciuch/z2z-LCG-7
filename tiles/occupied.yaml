@@ -1,0 +1,37 @@
+# "Zajęte" na pulpicie Teraz – widoczne, gdy czujnik ruchu / obecności wykrywa kogoś.
+# Dwa czujniki w jednym pomieszczeniu: zajęte, gdy którykolwiek jest "on"
+# (dla jednego czujnika podaj go w entity i entity2).
+# vars: uid, name, icon, entity, entity2
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_a
+    entity_id: ${entity}
+    internal: true
+    on_value: { script.execute: "${uid}_draw" }
+  - platform: homeassistant
+    id: ${uid}_b
+    entity_id: ${entity2}
+    internal: true
+    on_value: { script.execute: "${uid}_draw" }
+
+script:
+  - id: ${uid}_draw
+    then:
+      - lambda: z2z::set_visible(id(${uid}_tile), id(${uid}_a).state == "on" || id(${uid}_b).state == "on");
+      - script.execute: home_refresh
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - obj:
+            id: ${uid}_tile
+            styles: tile_style
+            hidden: true
+            clickable: false
+            bg_color: 0x2A1F3D
+            border_color: 0xA78BFA
+            widgets:
+              - label: { align: TOP_LEFT, text_font: i32, text_color: 0xA78BFA, text: "${icon}" }
+              - label: { align: BOTTOM_LEFT, y: -20, width: 126, height: 24, long_mode: DOT, text_font: f16, text: "${name}" }
+              - label: { align: BOTTOM_LEFT, text_font: f14, text_color: 0xC4B5FD, text: "zajęta" }

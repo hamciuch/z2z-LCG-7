@@ -72,30 +72,33 @@ packages:
   win_sp:  !include { file: ../tiles/window.yaml, vars: { uid: win_sp, name: "Okno sypialnia",    icon: $ic_window_open_variant, entity: binary_sensor.sp_okno_contact,       battery_entity: sensor.sp_okno_battery,       rain_check: "true", climate_entity: climate.sp_thermostat } }
   win_pd:  !include { file: ../tiles/window.yaml, vars: { uid: win_pd, name: "Okno pokój dzieci", icon: $ic_window_open_variant, entity: binary_sensor.pd_okno_contact,       battery_entity: sensor.pd_okno_battery,       rain_check: "true", climate_entity: climate.pd_themostat } }
 
+  # ── Zajętość: toaleta (2 czujniki ruchu), łazienka (czujnik obecności) ────
+  occ_tl: !include { file: ../tiles/occupied.yaml, vars: { uid: occ_tl, name: "Toaleta", icon: $ic_toilet, entity: binary_sensor.tl_czujnik_ruchu_occupancy, entity2: binary_sensor.tl_czujka_ruchu_occupancy } }
+
   # ── Plan dzieci (Z2Z Librus + zajęcia dodatkowe) – kafelek na Teraz ───────
   kid_gabi: !include { file: ../tiles/kid_plan.yaml, vars: { uid: kid_gabi, name: "Gabrysia", plan_calendar: calendar.dom_librus_gabriela_sobilo_plan_lekcji, extra_calendar: calendar.gabi_zajecia_dodatkowe } }
   kid_wik:  !include { file: ../tiles/kid_plan.yaml, vars: { uid: kid_wik,  name: "Wiktor",   plan_calendar: calendar.librus_wiktor_sobilo_plan_lekcji,         extra_calendar: calendar.wiktor_zajecia_dodatkowe } }
 
   # ── Pulpit 0: TERAZ – pokazują się tylko WŁĄCZONE (dotknięcie = wyłącz) ─────
   # Salon
-  l_sn_glowne:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_sn_glowne, name: "Salon",         icon: $ic_lightbulb, entity: switch.sn_oswietlenie_glowne } }
-  l_sn_sciana:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_sn_sciana, name: "Salon ściana",  icon: $ic_lightbulb, entity: switch.sn_swiatlo_sciana } }
+  l_sn_glowne:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_sn_glowne, name: "Salon",         icon: $ic_lightbulb, entity: switch.sn_oswietlenie_glowne, use_ha_name: "true" } }
+  l_sn_sciana:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_sn_sciana, name: "Salon ściana",  icon: $ic_lightbulb, entity: switch.sn_swiatlo_sciana, use_ha_name: "true" } }
   # Kuchnia
-  l_kc_1:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_kc_1, name: "Kuchnia 1", icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l1 } }
-  l_kc_2:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_kc_2, name: "Kuchnia 2", icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l2 } }
+  l_kc_1:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_kc_1, name: "Kuchnia meble", icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l1, use_ha_name: "false" } }
+  l_kc_2:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_kc_2, name: "Kuchnia główne", icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l2, use_ha_name: "false" } }
   # Sypialnia
-  l_sp:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_sp,     name: "Sypialnia",       icon: $ic_lightbulb, entity: light.sp_swiatlo } }
-  l_sp_lampka:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_sp_lampka, name: "Lampka sypialnia", icon: $ic_lightbulb, entity: switch.sp_lampka_tasmota } }
+  l_sp:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_sp,     name: "Sypialnia",       icon: $ic_lightbulb, entity: light.sp_swiatlo, use_ha_name: "true" } }
+  l_sp_lampka:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_sp_lampka, name: "Lampka sypialnia", icon: $ic_lightbulb, entity: switch.sp_lampka_tasmota, use_ha_name: "true" } }
   # Pokój dzieci
-  l_pd:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_pd,     name: "Pokój dzieci",    icon: $ic_lightbulb, entity: switch.pd_oswietlenie } }
+  l_pd:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_pd,     name: "Pokój dzieci",    icon: $ic_lightbulb, entity: switch.pd_oswietlenie, use_ha_name: "true" } }
   # Łazienka / toaleta / garderoba / pralnia
-  l_lz_1:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_lz_1, name: "Łazienka 1", icon: $ic_lightbulb, entity: light.lz_swiatlo_l1 } }
-  l_lz_2:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_lz_2, name: "Łazienka 2", icon: $ic_lightbulb, entity: light.lz_swiatlo_l2 } }
-  l_tl:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_tl,   name: "Toaleta",    icon: $ic_lightbulb, entity: light.tl_oswietlenie } }
-  l_tl_lustro:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_tl_lustro, name: "Lustro toaleta", icon: $ic_lightbulb, entity: light.tl_lustro } }
-  l_gb:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_gb,   name: "Garderoba",  icon: $ic_lightbulb, entity: light.gb_swiatlo } }
-  l_pr:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_pr,   name: "Pralnia",    icon: $ic_lightbulb, entity: light.pr_swiatlo } }
-  l_girlanda:   !include { file: ../tiles/active_light.yaml, vars: { uid: l_girlanda, name: "Girlanda", icon: $ic_string_lights, entity: switch.tasmota_tasmota2 } }
+  l_lz_1:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_lz_1, name: "Łazienka główne", icon: $ic_lightbulb, entity: light.lz_swiatlo_l1, use_ha_name: "false" } }
+  l_lz_2:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_lz_2, name: "Łazienka lustro", icon: $ic_lightbulb, entity: light.lz_swiatlo_l2, use_ha_name: "false" } }
+  l_tl:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_tl,   name: "Toaleta",    icon: $ic_lightbulb, entity: light.tl_oswietlenie, use_ha_name: "true" } }
+  l_tl_lustro:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_tl_lustro, name: "Lustro toaleta", icon: $ic_lightbulb, entity: light.tl_lustro, use_ha_name: "true" } }
+  l_gb:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_gb,   name: "Garderoba",  icon: $ic_lightbulb, entity: light.gb_swiatlo, use_ha_name: "true" } }
+  l_pr:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_pr,   name: "Pralnia",    icon: $ic_lightbulb, entity: light.pr_swiatlo, use_ha_name: "true" } }
+  l_girlanda:   !include { file: ../tiles/active_light.yaml, vars: { uid: l_girlanda, name: "Girlanda", icon: $ic_string_lights, entity: switch.tasmota_tasmota2, use_ha_name: "true" } }
   # Telewizory / konsola (media_player: widoczny gdy nie jest off/standby)
   minecraft:    !include { file: ../tiles/game_server.yaml, vars: { uid: minecraft, name: "Minecraft", icon: $ic_minecraft, status_entity: binary_sensor.192_168_23_11_25565_status, players_entity: sensor.192_168_23_11_25565_players_online } }
   tv_salon:     !include { file: ../tiles/active.yaml, vars: { uid: tv_salon, name: "TV salon",     icon: $ic_television, entity: media_player.telewizor_2 } }   # SPRAWDŹ: telewizor / _2 / _3
@@ -124,20 +127,20 @@ packages:
   ruch_sp_gl:   !include { file: ../tiles/motion_wake.yaml, vars: { uid: ruch_sp_gl,   entity: binary_sensor.sypialnia_glowna } }
 
   # ── Pulpit 1: ŚWIATŁA (wszystkie; dotknięcie = przełącz) ───────────────────
-  sw_sn:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sn,      name: "Salon",            icon: $ic_lightbulb, entity: switch.sn_oswietlenie_glowne } }
-  sw_sn_sc:   !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sn_sc,   name: "Salon ściana",     icon: $ic_lightbulb, entity: switch.sn_swiatlo_sciana } }
-  sw_kc1:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_kc1,     name: "Kuchnia 1",        icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l1 } }
-  sw_kc2:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_kc2,     name: "Kuchnia 2",        icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l2 } }
-  sw_sp:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sp,      name: "Sypialnia",        icon: $ic_lightbulb, entity: light.sp_swiatlo } }
-  sw_sp_l:    !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sp_l,    name: "Lampka sypialnia", icon: $ic_lightbulb, entity: switch.sp_lampka_tasmota } }
-  sw_pd:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_pd,      name: "Pokój dzieci",     icon: $ic_lightbulb, entity: switch.pd_oswietlenie } }
-  sw_lz1:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_lz1,     name: "Łazienka 1",       icon: $ic_lightbulb, entity: light.lz_swiatlo_l1 } }
-  sw_lz2:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_lz2,     name: "Łazienka 2",       icon: $ic_lightbulb, entity: light.lz_swiatlo_l2 } }
-  sw_tl:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_tl,      name: "Toaleta",          icon: $ic_lightbulb, entity: light.tl_oswietlenie } }
-  sw_tl_l:    !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_tl_l,    name: "Lustro toaleta",   icon: $ic_lightbulb, entity: light.tl_lustro } }
-  sw_gb:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_gb,      name: "Garderoba",        icon: $ic_lightbulb, entity: light.gb_swiatlo } }
-  sw_pr:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_pr,      name: "Pralnia",          icon: $ic_lightbulb, entity: light.pr_swiatlo } }
-  sw_gir:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_gir,     name: "Girlanda balkon",  icon: $ic_string_lights, entity: switch.tasmota_tasmota2 } }
+  sw_sn:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sn,      name: "Salon",            icon: $ic_lightbulb, entity: switch.sn_oswietlenie_glowne, use_ha_name: "true" } }
+  sw_sn_sc:   !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sn_sc,   name: "Salon ściana",     icon: $ic_lightbulb, entity: switch.sn_swiatlo_sciana, use_ha_name: "true" } }
+  sw_kc1:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_kc1,     name: "Kuchnia meble",        icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l1, use_ha_name: "false" } }
+  sw_kc2:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_kc2,     name: "Kuchnia główne",        icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l2, use_ha_name: "false" } }
+  sw_sp:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sp,      name: "Sypialnia",        icon: $ic_lightbulb, entity: light.sp_swiatlo, use_ha_name: "true" } }
+  sw_sp_l:    !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_sp_l,    name: "Lampka sypialnia", icon: $ic_lightbulb, entity: switch.sp_lampka_tasmota, use_ha_name: "true" } }
+  sw_pd:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_pd,      name: "Pokój dzieci",     icon: $ic_lightbulb, entity: switch.pd_oswietlenie, use_ha_name: "true" } }
+  sw_lz1:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_lz1,     name: "Łazienka główne",       icon: $ic_lightbulb, entity: light.lz_swiatlo_l1, use_ha_name: "false" } }
+  sw_lz2:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_lz2,     name: "Łazienka lustro",       icon: $ic_lightbulb, entity: light.lz_swiatlo_l2, use_ha_name: "false" } }
+  sw_tl:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_tl,      name: "Toaleta",          icon: $ic_lightbulb, entity: light.tl_oswietlenie, use_ha_name: "true" } }
+  sw_tl_l:    !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_tl_l,    name: "Lustro toaleta",   icon: $ic_lightbulb, entity: light.tl_lustro, use_ha_name: "true" } }
+  sw_gb:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_gb,      name: "Garderoba",        icon: $ic_lightbulb, entity: light.gb_swiatlo, use_ha_name: "true" } }
+  sw_pr:      !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_pr,      name: "Pralnia",          icon: $ic_lightbulb, entity: light.pr_swiatlo, use_ha_name: "true" } }
+  sw_gir:     !include { file: ../tiles/light_toggle.yaml, vars: { uid: sw_gir,     name: "Girlanda balkon",  icon: $ic_string_lights, entity: switch.tasmota_tasmota2, use_ha_name: "true" } }
 
   # ── Pulpit 2: GNIAZDKA i TASMOTY (moc w W; serwer tylko podgląd) ───────────
   # mode: toggle = od razu, confirm = pyta przed wyłączeniem, readonly = tylko podgląd
