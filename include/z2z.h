@@ -452,4 +452,25 @@ inline std::string dict_get(const std::string &d, const char *key) {
   return v == "None" || v == "null" ? "" : v;
 }
 
+
+inline std::string lessons_pack(const std::vector<Lesson> &v) {
+  std::string out;
+  for (auto &L : v) out += std::to_string(L.start) + "\t" + std::to_string(L.end) + "\t" + L.name + "\n";
+  return out;
+}
+inline std::vector<Lesson> lessons_unpack(const std::string &s) {
+  std::vector<Lesson> v;
+  size_t p = 0;
+  while (p < s.size()) {
+    size_t e = s.find('\n', p);
+    if (e == std::string::npos) e = s.size();
+    std::string line = s.substr(p, e - p);
+    size_t t1 = line.find('\t'), t2 = t1 == std::string::npos ? t1 : line.find('\t', t1 + 1);
+    if (t2 != std::string::npos)
+      v.push_back({(uint32_t) strtoul(line.c_str(), nullptr, 10), (uint32_t) strtoul(line.c_str() + t1 + 1, nullptr, 10), line.substr(t2 + 1)});
+    p = e + 1;
+  }
+  return v;
+}
+
 }  // namespace z2z

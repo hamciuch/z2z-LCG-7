@@ -5,7 +5,7 @@
 # vars: uid, name, plan_calendar, avg_entity, grades_entity (atrybut latest),
 #       homework_entity, test_entity, msg_entity (atrybut liczba_nieprzeczytanych)
 globals:
-  - { id: "${uid}_lessons", type: "std::vector<z2z::Lesson>" }
+  - { id: "${uid}_lessons", type: std::string }   # "start\tend\tnazwa\n" posortowane
 
 text_sensor:
   - platform: homeassistant
@@ -93,14 +93,14 @@ script:
                   all.push_back({s, k, std::string((const char *) (e["summary"] | ""))});
                 }
                 std::sort(all.begin(), all.end(), [](const z2z::Lesson &a, const z2z::Lesson &b) { return a.start < b.start; });
-                id(${uid}_lessons) = all;
+                id(${uid}_lessons) = z2z::lessons_pack(all);
       - script.execute: ${uid}_draw
 
   - id: ${uid}_draw
     then:
       - lambda: |-
           uint32_t now = z2z::now_ts();
-          auto &all = id(${uid}_lessons);
+          std::vector<z2z::Lesson> all = z2z::lessons_unpack(id(${uid}_lessons));
           // najbliższy dzień: dzień pierwszej lekcji, która jeszcze się nie skończyła
           int day = -1;
           for (auto &L : all) if (L.end > now) { day = z2z::local_yday(L.start); break; }
