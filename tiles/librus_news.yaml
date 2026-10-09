@@ -1,0 +1,71 @@
+# Nowości z Librusa na Teraz: nowe oceny, nieprzeczytane wiadomości, nowa uwaga.
+# Oceny i wiadomości znikają, gdy Librus przestanie je zgłaszać jako nowe;
+# nowa uwaga – po dotknięciu kafelka.
+# vars: uid, name, grades_entity (atrybut sa_nowe_oceny), msg_entity (atrybut liczba_nieprzeczytanych),
+#       notes_entity (stan = liczba uwag)
+globals:
+  - { id: "${uid}_notes_seen", type: int, restore_value: true, initial_value: "-1" }
+  - { id: "${uid}_note_new", type: bool, restore_value: true, initial_value: "false" }
+
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_g
+    entity_id: ${grades_entity}
+    attribute: sa_nowe_oceny
+    internal: true
+    on_value: { script.execute: "${uid}_draw" }
+
+sensor:
+  - platform: homeassistant
+    id: ${uid}_m
+    entity_id: ${msg_entity}
+    attribute: liczba_nieprzeczytanych
+    internal: true
+    on_value: { script.execute: "${uid}_draw" }
+  - platform: homeassistant
+    id: ${uid}_n
+    entity_id: ${notes_entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          if (isnan(x)) return;
+          int n = (int) x;
+          if (id(${uid}_notes_seen) >= 0 && n > id(${uid}_notes_seen)) id(${uid}_note_new) = true;
+          id(${uid}_notes_seen) = n;
+      - script.execute: ${uid}_draw
+
+script:
+  - id: ${uid}_draw
+    then:
+      - lambda: |-
+          std::string g = z2z::lower(id(${uid}_g).state);
+          bool grades = g == "true" || g == "on" || g == "1";
+          float mv = id(${uid}_m).state;
+          int msgs = isnan(mv) ? 0 : (int) mv;
+          bool note = id(${uid}_note_new);
+          std::string t;
+          if (grades) t = "nowe oceny";
+          if (msgs > 0) { if (!t.empty()) t += " · "; t += std::to_string(msgs) + (msgs == 1 ? " wiadomość" : (msgs < 5 ? " wiadomości" : " wiadomości")); }
+          if (note) { if (!t.empty()) t += " · "; t += "nowa uwaga"; }
+          lv_label_set_text(id(${uid}_txt), t.c_str());
+          if (z2z::set_visible(id(${uid}_tile), grades || msgs > 0 || note)) id(wake_screen).execute();
+      - script.execute: home_refresh
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: alert_style
+            hidden: true
+            bg_color: c_card
+            border_color: c_accent
+            on_click:
+              - lambda: |-
+                  id(${uid}_note_new) = false;
+              - script.execute: ${uid}_draw
+            widgets:
+              - label: { align: LEFT_MID, text_font: i32, text_color: c_accent, text: $ic_star_circle }
+              - label: { align: TOP_LEFT, x: 58, width: 222, long_mode: DOT, text_font: f18, text: "Librus: ${name}" }
+              - label: { id: "${uid}_txt", align: BOTTOM_LEFT, x: 58, width: 222, height: 44, long_mode: WRAP, text_font: f16, text_color: c_muted, text: "" }

@@ -1,0 +1,43 @@
+# Ciśnienie w oponach: alert, gdy któraś opona jest poniżej progu albo odstaje od
+# najwyższej o więcej niż max_diff. Wartości w kPa są przeliczane na bar.
+# vars: uid, fl, fr, rl, rr (sensory ciśnienia), min_bar, max_diff
+sensor:
+  - { platform: homeassistant, id: "${uid}_fl", entity_id: "${fl}", internal: true, on_value: { script.execute: "${uid}_eval" } }
+  - { platform: homeassistant, id: "${uid}_fr", entity_id: "${fr}", internal: true, on_value: { script.execute: "${uid}_eval" } }
+  - { platform: homeassistant, id: "${uid}_rl", entity_id: "${rl}", internal: true, on_value: { script.execute: "${uid}_eval" } }
+  - { platform: homeassistant, id: "${uid}_rr", entity_id: "${rr}", internal: true, on_value: { script.execute: "${uid}_eval" } }
+
+script:
+  - id: ${uid}_eval
+    mode: restart
+    then:
+      - delay: 1s
+      - lambda: |-
+          float v[4] = {id(${uid}_fl).state, id(${uid}_fr).state, id(${uid}_rl).state, id(${uid}_rr).state};
+          static const char *const N[4] = {"lewa przód", "prawa przód", "lewa tył", "prawa tył"};
+          float mx = 0; int n = 0;
+          for (auto &x : v) { if (isnan(x)) continue; if (x > 50) x /= 100.0f; mx = std::max(mx, x); n++; }
+          std::string bad;
+          for (int i = 0; i < 4; i++) {
+            if (isnan(v[i])) continue;
+            if (v[i] < ${min_bar} || mx - v[i] > ${max_diff}) {
+              char b[40]; snprintf(b, sizeof b, "%s%s %.1f", bad.empty() ? "" : ", ", N[i], v[i]);
+              bad += b;
+            }
+          }
+          lv_label_set_text(id(${uid}_txt), (bad + " bar").c_str());
+          if (z2z::set_visible(id(${uid}_tile), n > 0 && !bad.empty())) id(wake_screen).execute();
+      - script.execute: home_refresh
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: alert_style
+            hidden: true
+            widgets:
+              - label: { align: LEFT_MID, text_font: i32, text_color: c_warn, text: $ic_car_tire_alert }
+              - label: { align: TOP_LEFT, x: 58, width: 222, long_mode: DOT, text_font: f18, text: "Ciśnienie w oponach" }
+              - label: { id: "${uid}_txt", align: BOTTOM_LEFT, x: 58, width: 222, height: 44, long_mode: WRAP, text_font: f16, text_color: c_muted, text: "" }

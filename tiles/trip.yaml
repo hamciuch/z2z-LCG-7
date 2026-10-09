@@ -1,0 +1,55 @@
+# Tryb wyjazdu: gdy wszyscy są daleko (binary_sensor on), kafelek na Teraz
+# z liczbą rzeczy, które dalej są włączone, i przyciskiem jak "Wychodzę".
+# vars: uid, entity
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_s
+    entity_id: ${entity}
+    internal: true
+    on_value: { script.execute: "${uid}_draw" }
+
+interval:
+  - interval: 60s
+    then:
+      - script.execute: ${uid}_draw
+
+script:
+  - id: ${uid}_draw
+    then:
+      - lambda: |-
+          bool away = id(${uid}_s).state == "on";
+          // policz widoczne kafelki "włączone" na Teraz (bez siebie, napisu i przycisku Wychodzę)
+          lv_obj_t *page = id(page_home)->obj;
+          int n = 0;
+          uint32_t cnt = lv_obj_get_child_count(page);
+          for (uint32_t i = 0; i < cnt; i++) {
+            lv_obj_t *c = lv_obj_get_child(page, i);
+            if (c == id(${uid}_tile) || c == id(home_empty) || c == id(leave_btn)) continue;
+            if (!lv_obj_has_flag(c, LV_OBJ_FLAG_HIDDEN)) n++;
+          }
+          if (n == 0) lv_label_set_text(id(${uid}_txt), "wszystko wyłączone");
+          else lv_label_set_text_fmt(id(${uid}_txt), "na Teraz: %d pozycji – dotknij, aby wyłączyć", n);
+          z2z::set_visible(id(${uid}_tile), away);
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: alert_style
+            hidden: true
+            bg_color: c_card
+            border_color: c_accent
+            on_click:
+              - script.execute:
+                  id: confirm_open
+                  c_question: "Wyjazd – wyłączyć?"
+                  c_detail: "${leave_desc}"
+                  c_yes: "Wyłącz"
+                  c_action: "homeassistant.turn_off"
+                  c_entity: "${leave_entities}"
+            widgets:
+              - label: { align: LEFT_MID, text_font: i32, text_color: c_accent, text: $ic_airplane_takeoff }
+              - label: { align: TOP_LEFT, x: 58, width: 222, long_mode: DOT, text_font: f18, text: "Wszyscy daleko" }
+              - label: { id: "${uid}_txt", align: BOTTOM_LEFT, x: 58, width: 222, height: 44, long_mode: WRAP, text_font: f16, text_color: c_muted, text: "" }

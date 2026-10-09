@@ -1,0 +1,29 @@
+# Usługa / serwer: alert na Teraz, gdy stan nie jest "running" (np. stopped, exited).
+# vars: uid, name, entity (sensor ze stanem kontenera / usługi)
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_s
+    entity_id: ${entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          bool known = !(x.empty() || x == "unknown");
+          bool bad = known && x != "running";
+          lv_label_set_text(id(${uid}_val), x == "unavailable" ? "brak danych" : x.c_str());
+          if (z2z::set_visible(id(${uid}_tile), bad)) id(wake_screen).execute();
+      - script.execute: home_refresh
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: alert_style
+            hidden: true
+            bg_color: 0x3A1414
+            border_color: c_err
+            widgets:
+              - label: { align: LEFT_MID, text_font: i32, text_color: c_err, text: $ic_cloud_alert }
+              - label: { align: TOP_LEFT, x: 58, width: 222, long_mode: DOT, text_font: f18, text: "${name} nie działa" }
+              - label: { id: "${uid}_val", align: BOTTOM_LEFT, x: 58, width: 222, long_mode: DOT, text_font: f16, text_color: 0xFFB4B4, text: "" }

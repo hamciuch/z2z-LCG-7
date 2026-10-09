@@ -1,0 +1,65 @@
+# "Jutro sprawdzian" – po 14:00 kafelek na Teraz z jutrzejszymi wydarzeniami
+# z kalendarza Librusa (kartkówki, klasówki, sprawdziany). Odświeżane co 30 min.
+# vars: uid, name, calendar
+globals:
+  - { id: "${uid}_txt_s", type: std::string }
+
+script:
+  - id: ${uid}_fetch
+    mode: single
+    then:
+      - homeassistant.action:
+          action: calendar.get_events
+          data:
+            entity_id: ${calendar}
+          data_template:
+            start_date_time: "{{ (today_at('00:00') + timedelta(days=1)).isoformat() }}"
+            end_date_time: "{{ (today_at('00:00') + timedelta(days=2)).isoformat() }}"
+          capture_response: true
+          on_success:
+            - lambda: |-
+                JsonArrayConst ev = response["${calendar}"]["events"].as<JsonArrayConst>();
+                std::string t;
+                for (JsonObjectConst e : ev) {
+                  const char *s = e["summary"] | "";
+                  if (!*s) continue;
+                  if (!t.empty()) t += ", ";
+                  t += s;
+                }
+                id(${uid}_txt_s) = t;
+      - script.execute: ${uid}_draw
+  - id: ${uid}_draw
+    then:
+      - lambda: |-
+          uint32_t now = z2z::now_ts();
+          time_t tn = now; struct tm l{}; localtime_r(&tn, &l);
+          bool show = now && l.tm_hour >= 14 && !id(${uid}_txt_s).empty();
+          lv_label_set_text(id(${uid}_txt), id(${uid}_txt_s).c_str());
+          z2z::set_visible(id(${uid}_tile), show);
+      - script.execute: home_refresh
+
+interval:
+  - interval: 30min
+    then:
+      - script.execute: ${uid}_fetch
+  - interval: 5min
+    then:
+      - script.execute: ${uid}_draw
+
+api:
+  on_client_connected:
+    - delay: 30s
+    - script.execute: ${uid}_fetch
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: alert_style
+            hidden: true
+            widgets:
+              - label: { align: LEFT_MID, text_font: i32, text_color: c_warn, text: $ic_clipboard_text }
+              - label: { align: TOP_LEFT, x: 58, width: 222, long_mode: DOT, text_font: f18, text: "${name} – jutro:" }
+              - label: { id: "${uid}_txt", align: BOTTOM_LEFT, x: 58, width: 222, height: 44, long_mode: WRAP, text_font: f16, text_color: c_muted, text: "" }
