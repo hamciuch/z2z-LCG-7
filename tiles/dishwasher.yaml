@@ -70,8 +70,19 @@ script:
       - lambda: |-
           auto now = id(ha_time).now();
           int64_t now_utc = now.is_valid() ? (int64_t) now.timestamp : 0;
+          int mins = z2z::remaining_mins(id(${uid}_rem).state, now_utc);
           std::string rem = z2z::remaining(id(${uid}_rem).state, now_utc);
-          bool running = !rem.empty() && rem != "0 min";
+          bool running = mins > 0 || z2z::in_list(id(${uid}_st).state, "run,running,delayedstart,delayed_start,inprogress");
+          // kafelek na Teraz: "zostało 1 h 20 min · koniec 19:45"
+          std::string sub;
+          if (mins > 0) {
+            sub = "zostało " + rem;
+            if (now_utc > 0) sub += " · " + z2z::hhmm((uint32_t) (now_utc + mins * 60));
+          } else {
+            sub = z2z::pl(id(${uid}_phase).state);
+          }
+          lv_label_set_text(id(${uid}_tsub), sub.c_str());
+          z2z::set_visible(id(${uid}_tile), running);
           lv_label_set_text(id(${uid}_rem_lbl), running ? ("Pozostało: " + rem).c_str() : "");
           z2z::set_text_color(id(${uid}_icon), running ? z2z::C_ACCENT : (id(${uid}_unload) ? z2z::C_OK : z2z::C_MUTED));
           if (z2z::set_visible(id(${uid}_alert), id(${uid}_unload))) id(wake_screen).execute();
@@ -84,6 +95,18 @@ interval:
 
 lvgl:
   pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: tile_style
+            hidden: true
+            on_click:
+              - script.execute: { id: goto_page, idx: 6 }
+            widgets:
+              - label: { align: TOP_LEFT, text_font: i32, text_color: c_accent, text: $ic_dishwasher }
+              - label: { align: BOTTOM_LEFT, y: -20, width: 126, height: 24, long_mode: DOT, text_font: f16, text: "${name}" }
+              - label: { id: "${uid}_tsub", align: BOTTOM_LEFT, width: 126, height: 22, long_mode: DOT, text_font: f14, text_color: c_muted, text: "" }
     - id: !extend page_appliances
       widgets:
         - obj:

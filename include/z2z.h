@@ -174,8 +174,18 @@ inline int64_t parse_iso(const std::string &s) {
 }
 
 // Pozostały czas jako tekst. Akceptuje: znacznik czasu ISO, liczbę minut, "H:MM:SS".
+// Pozostałe minuty: znacznik czasu ISO (koniec) albo "H:MM:SS" albo liczba minut; -1 = brak
+inline int remaining_mins(const std::string &raw, int64_t now_utc);
 inline std::string remaining(const std::string &raw, int64_t now_utc) {
-  if (raw.empty() || raw == "unknown" || raw == "unavailable") return "";
+  int mins = remaining_mins(raw, now_utc);
+  if (mins < 0) return "";
+  char b[40];
+  if (mins >= 60) snprintf(b, sizeof(b), "%d h %02d min", mins / 60, mins % 60);
+  else snprintf(b, sizeof(b), "%d min", mins);
+  return b;
+}
+inline int remaining_mins(const std::string &raw, int64_t now_utc) {
+  if (raw.empty() || raw == "unknown" || raw == "unavailable") return -1;
   int mins = -1;
   int64_t ts = parse_iso(raw);
   if (ts > 0 && now_utc > 0) {
@@ -189,11 +199,7 @@ inline std::string remaining(const std::string &raw, int64_t now_utc) {
       if (end != raw.c_str()) mins = (int) v;
     }
   }
-  if (mins < 0) return "";
-  char b[40];
-  if (mins >= 60) snprintf(b, sizeof(b), "%d h %02d min", mins / 60, mins % 60);
-  else snprintf(b, sizeof(b), "%d min", mins);
-  return b;
+  return mins < 0 ? -1 : mins;
 }
 
 
