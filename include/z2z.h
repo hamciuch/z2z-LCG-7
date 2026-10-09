@@ -269,7 +269,11 @@ static const NamedGlyph ZONE_ICONS[] = {
     {"golf", "\xF3\xB0\xA0\xA3"},
     {"baby-face-outline", "\xF3\xB0\xB9\xBD"},
     {"account-heart", "\xF3\xB0\xA2\x99"},
-    {"human-cane", "\xF3\xB1\x96\x81"}
+    {"human-cane", "\xF3\xB1\x96\x81"},
+    {"account-tie", "\xF3\xB0\xB3\xA3"},
+    {"account-tie-woman", "\xF3\xB1\xAA\x8C"},
+    {"account-school", "\xF3\xB1\xA8\xA0"},
+    {"greenhouse", "\xF3\xB0\x80\xAD"}
 };
 inline const char *zone_glyph(const std::string &name) {
   for (auto &z : ZONE_ICONS)
