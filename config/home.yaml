@@ -44,24 +44,24 @@ packages:
 
   # ── Pulpit 0: TERAZ – pokazują się tylko WŁĄCZONE (dotknięcie = wyłącz) ─────
   # Salon
-  l_sn_glowne:  !include { file: ../tiles/active.yaml, vars: { uid: l_sn_glowne, name: "Salon",         icon: $ic_lightbulb, entity: switch.sn_oswietlenie_glowne } }
-  l_sn_sciana:  !include { file: ../tiles/active.yaml, vars: { uid: l_sn_sciana, name: "Salon ściana",  icon: $ic_lightbulb, entity: switch.sn_swiatlo_sciana } }
+  l_sn_glowne:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_sn_glowne, name: "Salon",         icon: $ic_lightbulb, entity: switch.sn_oswietlenie_glowne } }
+  l_sn_sciana:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_sn_sciana, name: "Salon ściana",  icon: $ic_lightbulb, entity: switch.sn_swiatlo_sciana } }
   # Kuchnia
-  l_kc_1:       !include { file: ../tiles/active.yaml, vars: { uid: l_kc_1, name: "Kuchnia 1", icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l1 } }
-  l_kc_2:       !include { file: ../tiles/active.yaml, vars: { uid: l_kc_2, name: "Kuchnia 2", icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l2 } }
+  l_kc_1:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_kc_1, name: "Kuchnia 1", icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l1 } }
+  l_kc_2:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_kc_2, name: "Kuchnia 2", icon: $ic_lightbulb, entity: switch.kc_oswietlenie_l2 } }
   # Sypialnia
-  l_sp:         !include { file: ../tiles/active.yaml, vars: { uid: l_sp,     name: "Sypialnia",       icon: $ic_lightbulb, entity: light.sp_swiatlo } }
-  l_sp_lampka:  !include { file: ../tiles/active.yaml, vars: { uid: l_sp_lampka, name: "Lampka sypialnia", icon: $ic_lightbulb, entity: switch.sp_lampka_tasmota } }
+  l_sp:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_sp,     name: "Sypialnia",       icon: $ic_lightbulb, entity: light.sp_swiatlo } }
+  l_sp_lampka:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_sp_lampka, name: "Lampka sypialnia", icon: $ic_lightbulb, entity: switch.sp_lampka_tasmota } }
   # Pokój dzieci
-  l_pd:         !include { file: ../tiles/active.yaml, vars: { uid: l_pd,     name: "Pokój dzieci",    icon: $ic_lightbulb, entity: switch.pd_oswietlenie } }
+  l_pd:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_pd,     name: "Pokój dzieci",    icon: $ic_lightbulb, entity: switch.pd_oswietlenie } }
   # Łazienka / toaleta / garderoba / pralnia
-  l_lz_1:       !include { file: ../tiles/active.yaml, vars: { uid: l_lz_1, name: "Łazienka 1", icon: $ic_lightbulb, entity: light.lz_swiatlo_l1 } }
-  l_lz_2:       !include { file: ../tiles/active.yaml, vars: { uid: l_lz_2, name: "Łazienka 2", icon: $ic_lightbulb, entity: light.lz_swiatlo_l2 } }
-  l_tl:         !include { file: ../tiles/active.yaml, vars: { uid: l_tl,   name: "Toaleta",    icon: $ic_lightbulb, entity: light.tl_oswietlenie } }
-  l_tl_lustro:  !include { file: ../tiles/active.yaml, vars: { uid: l_tl_lustro, name: "Lustro toaleta", icon: $ic_lightbulb, entity: light.tl_lustro } }
-  l_gb:         !include { file: ../tiles/active.yaml, vars: { uid: l_gb,   name: "Garderoba",  icon: $ic_lightbulb, entity: light.gb_swiatlo } }
-  l_pr:         !include { file: ../tiles/active.yaml, vars: { uid: l_pr,   name: "Pralnia",    icon: $ic_lightbulb, entity: light.pr_swiatlo } }
-  l_girlanda:   !include { file: ../tiles/active.yaml, vars: { uid: l_girlanda, name: "Girlanda", icon: $ic_string_lights, entity: switch.tasmota_tasmota2 } }
+  l_lz_1:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_lz_1, name: "Łazienka 1", icon: $ic_lightbulb, entity: light.lz_swiatlo_l1 } }
+  l_lz_2:       !include { file: ../tiles/active_light.yaml, vars: { uid: l_lz_2, name: "Łazienka 2", icon: $ic_lightbulb, entity: light.lz_swiatlo_l2 } }
+  l_tl:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_tl,   name: "Toaleta",    icon: $ic_lightbulb, entity: light.tl_oswietlenie } }
+  l_tl_lustro:  !include { file: ../tiles/active_light.yaml, vars: { uid: l_tl_lustro, name: "Lustro toaleta", icon: $ic_lightbulb, entity: light.tl_lustro } }
+  l_gb:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_gb,   name: "Garderoba",  icon: $ic_lightbulb, entity: light.gb_swiatlo } }
+  l_pr:         !include { file: ../tiles/active_light.yaml, vars: { uid: l_pr,   name: "Pralnia",    icon: $ic_lightbulb, entity: light.pr_swiatlo } }
+  l_girlanda:   !include { file: ../tiles/active_light.yaml, vars: { uid: l_girlanda, name: "Girlanda", icon: $ic_string_lights, entity: switch.tasmota_tasmota2 } }
   # Telewizory / konsola (media_player: widoczny gdy nie jest off/standby)
   tv_salon:     !include { file: ../tiles/active.yaml, vars: { uid: tv_salon, name: "TV salon",     icon: $ic_television, entity: media_player.telewizor_2 } }   # SPRAWDŹ: telewizor / _2 / _3
   tv_sp:        !include { file: ../tiles/active.yaml, vars: { uid: tv_sp,    name: "TV sypialnia", icon: $ic_television, entity: media_player.living_room_ue40h6700 } }

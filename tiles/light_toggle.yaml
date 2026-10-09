@@ -2,6 +2,8 @@
 # Zapalone = bursztynowy kafelek, dotknięcie = przełącz (homeassistant.toggle).
 # Kafelek 148×112 – 5 w rzędzie, 15 mieści się (3×108 px) na ekranie.
 # vars: uid, entity, name, icon
+# Nazwa na kafelku = opis (friendly_name) z HA; "name" to tylko zapas,
+# zanim HA odpowie.
 text_sensor:
   - platform: homeassistant
     id: ${uid}_lt
@@ -16,6 +18,15 @@ text_sensor:
           z2z::set_text_color(id(${uid}_ico), on ? z2z::C_ACCENT : z2z::C_MUTED);
           lv_label_set_text(id(${uid}_st), na ? "niedostępne" : (on ? "włączone" : "wyłączone"));
           lv_obj_set_style_opa(id(${uid}_btn), na ? LV_OPA_50 : LV_OPA_COVER, 0);
+
+  - platform: homeassistant
+    id: ${uid}_fn
+    entity_id: ${entity}
+    attribute: friendly_name
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!x.empty()) lv_label_set_text(id(${uid}_nm), x.c_str());
 
 lvgl:
   pages:
@@ -43,6 +54,7 @@ lvgl:
                   text_color: c_muted
                   text: "${icon}"
               - label:
+                  id: ${uid}_nm
                   align: BOTTOM_LEFT
                   y: -18
                   width: 126
