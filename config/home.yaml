@@ -74,6 +74,7 @@ packages:
 
   # ── Zajętość: toaleta (2 czujniki ruchu), łazienka (czujnik obecności) ────
   occ_tl: !include { file: ../tiles/occupied.yaml, vars: { uid: occ_tl, name: "Toaleta", icon: $ic_toilet, entity: binary_sensor.tl_czujnik_ruchu_occupancy, entity2: binary_sensor.tl_czujka_ruchu_occupancy } }
+  occ_lz: !include { file: ../tiles/occupied.yaml, vars: { uid: occ_lz, name: "Łazienka", icon: $ic_shower, entity: binary_sensor.lz_czujnik_obecnosci_occupancy, entity2: binary_sensor.lz_czujnik_obecnosci_occupancy } }
 
   # ── Plan dzieci (Z2Z Librus + zajęcia dodatkowe) – kafelek na Teraz ───────
   kid_gabi: !include { file: ../tiles/kid_plan.yaml, vars: { uid: kid_gabi, name: "Gabrysia", plan_calendar: calendar.dom_librus_gabriela_sobilo_plan_lekcji, extra_calendar: calendar.gabi_zajecia_dodatkowe } }
