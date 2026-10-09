@@ -1,0 +1,113 @@
+# Baterie czujników – zbiorczy alert na Teraz, gdy któraś spadnie poniżej progu
+# (domyślnie 25% = "1 kreska", czerwona). Dotknięcie pokazuje listę.
+# Lista wygenerowana z HA (bez telefonów, auta i odkurzacza) – dopisuj kolejne wg wzoru.
+substitutions:
+  battery_low: "25"
+
+sensor:
+  - { platform: homeassistant, id: bw_0, entity_id: sensor.timmerflotte_temp_hmd_sensor_bateria, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_1, entity_id: sensor.aqara_smart_lock_u200_bateria, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_2, entity_id: sensor.wejscie_myggbett_door_window_sensor_bateria, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_3, entity_id: sensor.pr_czujnik_ruchu_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_4, entity_id: sensor.tr_temp_xiaomi_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_5, entity_id: sensor.pd_temperatura_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_6, entity_id: sensor.tl_czujnik_ruchu_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_7, entity_id: sensor.gb_czujka_ruchu_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_8, entity_id: sensor.sn_temperatura_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_9, entity_id: sensor.kc_przelacznik_eks_cza_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_10, entity_id: sensor.lz_temperatura_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_11, entity_id: sensor.gb_drukarka3d_ams_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_12, entity_id: sensor.gb_drukarka3d_komora_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_13, entity_id: sensor.sp_wlacznik_komputer_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_14, entity_id: sensor.lz_czujnik_zalania_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_15, entity_id: sensor.pr_czujnik_zalania_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_16, entity_id: sensor.pd_okno_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_17, entity_id: sensor.gb_wlacznik_drukarki3d_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_18, entity_id: sensor.gb_server_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_19, entity_id: sensor.sp_temperatura_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_20, entity_id: sensor.kc_filtr_kuna_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_21, entity_id: sensor.sn_salon_okno_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_22, entity_id: sensor.pr_temperatura_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_23, entity_id: sensor.sn_kaktus_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_24, entity_id: sensor.sn_paprotka_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_25, entity_id: sensor.sn_sansewieria_gwinejska_duza_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_26, entity_id: sensor.sn_sansewieria_gwinejska_mala_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_27, entity_id: sensor.sn_sansewieria_gwinejska_okno_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_28, entity_id: sensor.sn_filodendron_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_29, entity_id: sensor.pd_pilot_pc_os_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_30, entity_id: sensor.pd_wiktor_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_31, entity_id: sensor.tr_czujnik_deszczu_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_32, entity_id: sensor.niebieski_przycisk_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_33, entity_id: sensor.sp_okno_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_34, entity_id: sensor.sp_thermostat_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_35, entity_id: sensor.sn_thermostat_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_36, entity_id: sensor.tl_czujka_ruchu_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_37, entity_id: sensor.pd_themostat_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_38, entity_id: sensor.sn_hedera_eva_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_39, entity_id: sensor.sn_hedera_eva_tv_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_40, entity_id: sensor.lz_thermostat_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_41, entity_id: sensor.sp_pilot_biurko_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_42, entity_id: sensor.kc_pilot_do_drzwi_battery, internal: true, on_value: { script.execute: bat_refresh } }
+  - { platform: homeassistant, id: bw_43, entity_id: sensor.tr_czujka_ruchu_battery, internal: true, on_value: { script.execute: bat_refresh } }
+
+script:
+  - id: bat_refresh
+    mode: restart
+    then:
+      - delay: 2s
+      - lambda: |-
+          sensor::Sensor *s[] = {id(bw_0), id(bw_1), id(bw_2), id(bw_3), id(bw_4), id(bw_5), id(bw_6), id(bw_7), id(bw_8), id(bw_9), id(bw_10), id(bw_11), id(bw_12), id(bw_13), id(bw_14), id(bw_15), id(bw_16), id(bw_17), id(bw_18), id(bw_19), id(bw_20), id(bw_21), id(bw_22), id(bw_23), id(bw_24), id(bw_25), id(bw_26), id(bw_27), id(bw_28), id(bw_29), id(bw_30), id(bw_31), id(bw_32), id(bw_33), id(bw_34), id(bw_35), id(bw_36), id(bw_37), id(bw_38), id(bw_39), id(bw_40), id(bw_41), id(bw_42), id(bw_43)};
+          static const char *const N[] = {"SP: Biurko Marek", "Aqara Smart Lock U200", "WJ: Drzwi Wejściowe", "PR: Czujnik Ruchu", "TR: Temp Xiaomi", "PD: Temperatura", "TL: Czujnik Ruchu", "GB: Czujka Ruchu", "SN: Temperatura", "KC: Przełącznik Eks-Cza", "LZ: Temperatura", "GB: Drukarka3D AMS", "GB: Drukarka3D Komora", "SP: Włącznik Komputer", "LZ: Czujnik Zalania", "PR: Czujnik Zalania", "PD: Okno", "GB: Włącznik Drukarki3D", "GB: Server", "SP: Temperatura", "KC: Filtr Kuna", "SN: Salon Okno", "PR: Temperatura", "SN: Kaktus", "SN: Paprotka", "SN: Sansewieria Gwinejska Duża", "SN: Sansewieria Gwinejska (Mała)", "SN: Sansewieria Gwinejska Okno", "SN: Filodendron", "PD: Pilot PC/OS", "PD: Wiktor", "TR: Czujnik Deszczu", "Niebieski przycisk", "SP: Okno", "SP: Thermostat", "SN: Thermostat", "TL: Czujka ruchu", "PD: Themostat", "SN: Hedera Eva", "SN: Fiucus Molcame", "LZ: Thermostat", "SP: Pilot Biurko", "KC: Pilot do Drzwi", "TR: Czujka ruchu"};
+          int low = 0; std::string list;
+          for (size_t i = 0; i < sizeof(s) / sizeof(s[0]); i++) {
+            float v = s[i]->state;
+            if (isnan(v) || v >= ${battery_low}) continue;
+            low++;
+            char b[80];
+            snprintf(b, sizeof b, "%s%s – %.0f%%", list.empty() ? "" : "\n", N[i], v);
+            list += b;
+          }
+          lv_label_set_text_fmt(id(bat_alert_txt), low == 1 ? "1 czujnik: słaba bateria" : "%d czujników: słaba bateria", low);
+          lv_label_set_text(id(bat_list), list.c_str());
+          if (z2z::set_visible(id(bat_alert), low > 0)) id(wake_screen).execute();
+      - script.execute: home_refresh
+
+lvgl:
+  top_layer:
+    widgets:
+      - obj:
+          id: bat_box
+          hidden: true
+          width: 100%
+          height: 100%
+          bg_color: 0x000000
+          bg_opa: 70%
+          border_width: 0
+          radius: 0
+          on_click:
+            - lvgl.widget.hide: bat_box
+          widgets:
+            - obj:
+                align: CENTER
+                width: 600
+                height: 380
+                styles: card_style
+                bg_color: c_card2
+                scrollable: true
+                scroll_dir: VER
+                widgets:
+                  - label: { align: TOP_LEFT, text_font: f22, text: "Słabe baterie (poniżej ${battery_low}%)" }
+                  - label: { id: bat_list, align: TOP_LEFT, y: 40, width: 560, long_mode: WRAP, text_font: f18, text: "" }
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: bat_alert
+            styles: alert_style
+            hidden: true
+            on_click:
+              - lvgl.widget.show: bat_box
+            widgets:
+              - label: { align: LEFT_MID, text_font: i32, text_color: c_err, text: $ic_battery_alert_variant_outline }
+              - label: { id: bat_alert_txt, align: TOP_LEFT, x: 58, width: 222, long_mode: WRAP, text_font: f18, text: "" }
+              - label: { align: BOTTOM_LEFT, x: 58, text_font: f18, text_color: c_muted, text: "Dotknij – lista" }

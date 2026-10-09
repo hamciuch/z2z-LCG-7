@@ -137,7 +137,7 @@ script:
       - delay: 50ms
       - lambda: |-
           lv_obj_t *page = id(page_home)->obj;
-          int n = z2z::visible_children(page, id(home_empty), nullptr);
+          int n = z2z::visible_children(page, id(home_empty), id(leave_btn));
           z2z::show(id(home_empty), n == 0);
 
   # Wybudza ekran i zeruje licznik bezczynności (nowy alert, ruch z czujnika)

@@ -19,6 +19,22 @@ substitutions:
   pressure_entity: sensor.stacja_pogody_esp32_bme280_pressure
   weather_entity: weather.forecast_dom                                  # prognoza (dotknięcie pogody na belce)
   # Pomocnik-szablon w HA z ikonami stref: "marek=home;ania=briefcase;…" (README)
+  # Przycisk "Wychodzę" (Teraz): wyłącza TYLKO te encje. Bez pralki, suszarki,
+  # serwera, drukarki 3D i komputerów – celowo, nie dopisuj ich.
+  leave_entities: "switch.sn_oswietlenie_glowne,switch.sn_swiatlo_sciana,switch.kc_oswietlenie_l1,switch.kc_oswietlenie_l2,light.sp_swiatlo,switch.sp_lampka_tasmota,switch.pd_oswietlenie,light.lz_swiatlo_l1,light.lz_swiatlo_l2,light.tl_oswietlenie,light.tl_lustro,light.gb_swiatlo,light.pr_swiatlo,switch.tasmota_tasmota2,switch.sn_ekspres,switch.czajnik,switch.okap,media_player.telewizor_2,media_player.living_room_ue40h6700,media_player.playstation_5"
+  leave_desc: "Wszystkie światła, ekspres, czajnik, okap, telewizory i PS5. Pralka, suszarka, serwer i drukarka 3D zostają włączone."
+  # Zamek drzwi wejściowych i strefy alarmu Satel (belka + alerty)
+  lock_entity: lock.aqara_smart_lock_u200
+  alarm_1: alarm_control_panel.wejscie
+  alarm_1_name: "Wejście"
+  alarm_2: alarm_control_panel.salon
+  alarm_2_name: "Salon z Aneksem"
+  alarm_3: alarm_control_panel.pokoj_dzieci
+  alarm_3_name: "Sypialnia Dzieci"
+  alarm_4: alarm_control_panel.sypialnia_glowna
+  alarm_4_name: "Sypialnia Główna"
+  alarm_5: alarm_control_panel.garderoba
+  alarm_5_name: "Garderoba"
   zones_entity: sensor.lokalizacja                                      # SPRAWDŹ: nazwa pomocnika
   # serwer: działa, gdy gniazdko Tasmota-Server pobiera > server_power_min W
   server_power_entity: sensor.tasmota_server_energy_power
@@ -46,6 +62,19 @@ packages:
   person_2: !include { file: ../tiles/person.yaml, vars: { uid: person_2, slot: 1, name: "Ania",     entity: person.ania } }
   person_3: !include { file: ../tiles/person.yaml, vars: { uid: person_3, slot: 2, name: "Gabrysia", entity: person.gabrysia } }
   person_4: !include { file: ../tiles/person.yaml, vars: { uid: person_4, slot: 3, name: "Wiktor",   entity: person.wiktorek } }
+
+  # ── Bezpieczeństwo: zalanie, okna, drzwi (na Teraz tylko gdy coś się dzieje) ──
+  leak_lz: !include { file: ../tiles/leak.yaml, vars: { uid: leak_lz, name: "Łazienka",      entity: binary_sensor.lz_czujnik_zalania_water_leak } }
+  leak_pr: !include { file: ../tiles/leak.yaml, vars: { uid: leak_pr, name: "Pralnia",       entity: binary_sensor.pr_czujnik_zalania_water_leak } }
+  leak_kc: !include { file: ../tiles/leak.yaml, vars: { uid: leak_kc, name: "Kuchnia – filtr", entity: binary_sensor.kc_filtr_kuna_water_leak } }
+  door_wj: !include { file: ../tiles/contact.yaml, vars: { uid: door_wj, name: "Drzwi wejściowe", icon: $ic_door_open, entity: binary_sensor.wejscie_myggbett_door_window_sensor_drzwi, battery_entity: sensor.wejscie_myggbett_door_window_sensor_bateria, rain_check: "false" } }
+  win_sn:  !include { file: ../tiles/window.yaml, vars: { uid: win_sn, name: "Okno salon",        icon: $ic_window_open_variant, entity: binary_sensor.sn_salon_okno_contact, battery_entity: sensor.sn_salon_okno_battery, rain_check: "true", climate_entity: climate.sn_thermostat } }
+  win_sp:  !include { file: ../tiles/window.yaml, vars: { uid: win_sp, name: "Okno sypialnia",    icon: $ic_window_open_variant, entity: binary_sensor.sp_okno_contact,       battery_entity: sensor.sp_okno_battery,       rain_check: "true", climate_entity: climate.sp_thermostat } }
+  win_pd:  !include { file: ../tiles/window.yaml, vars: { uid: win_pd, name: "Okno pokój dzieci", icon: $ic_window_open_variant, entity: binary_sensor.pd_okno_contact,       battery_entity: sensor.pd_okno_battery,       rain_check: "true", climate_entity: climate.pd_themostat } }
+
+  # ── Plan dzieci (Z2Z Librus + zajęcia dodatkowe) – kafelek na Teraz ───────
+  kid_gabi: !include { file: ../tiles/kid_plan.yaml, vars: { uid: kid_gabi, name: "Gabrysia", plan_calendar: calendar.dom_librus_gabriela_sobilo_plan_lekcji, extra_calendar: calendar.gabi_zajecia_dodatkowe } }
+  kid_wik:  !include { file: ../tiles/kid_plan.yaml, vars: { uid: kid_wik,  name: "Wiktor",   plan_calendar: calendar.librus_wiktor_sobilo_plan_lekcji,         extra_calendar: calendar.wiktor_zajecia_dodatkowe } }
 
   # ── Pulpit 0: TERAZ – pokazują się tylko WŁĄCZONE (dotknięcie = wyłącz) ─────
   # Salon
@@ -140,10 +169,10 @@ packages:
   # ── Pulpit 3: OGRZEWANIE (głowice + czujniki Zigbee w pokojach) ────────────
   # Uwaga: głowice są w trybie "auto" (harmonogram) – ręczna zmiana zadanej może
   # zostać nadpisana przez harmonogram przy następnym kroku.
-  h_salon: !include { file: ../tiles/climate.yaml, vars: { uid: h_salon, name: "Salon",        entity: climate.sn_thermostat, room_temp_entity: sensor.sn_temperatura_temperature } }
-  h_sp:    !include { file: ../tiles/climate.yaml, vars: { uid: h_sp,    name: "Sypialnia",    entity: climate.sp_thermostat, room_temp_entity: sensor.sp_temperatura_temperature } }
-  h_pd:    !include { file: ../tiles/climate.yaml, vars: { uid: h_pd,    name: "Pokój dzieci", entity: climate.pd_themostat,  room_temp_entity: sensor.pd_temperatura_temperature } }
-  h_lz:    !include { file: ../tiles/climate.yaml, vars: { uid: h_lz,    name: "Łazienka",     entity: climate.lz_thermostat, room_temp_entity: sensor.lz_temperatura_temperature } }
+  h_salon: !include { file: ../tiles/climate.yaml, vars: { uid: h_salon, name: "Salon",        entity: climate.sn_thermostat, room_temp_entity: sensor.sn_temperatura_temperature, battery_entity: sensor.sn_temperatura_battery, trv_battery_entity: sensor.sn_thermostat_battery } }
+  h_sp:    !include { file: ../tiles/climate.yaml, vars: { uid: h_sp,    name: "Sypialnia",    entity: climate.sp_thermostat, room_temp_entity: sensor.sp_temperatura_temperature, battery_entity: sensor.sp_temperatura_battery, trv_battery_entity: sensor.sp_thermostat_battery } }
+  h_pd:    !include { file: ../tiles/climate.yaml, vars: { uid: h_pd,    name: "Pokój dzieci", entity: climate.pd_themostat,  room_temp_entity: sensor.pd_temperatura_temperature, battery_entity: sensor.pd_temperatura_battery, trv_battery_entity: sensor.pd_themostat_battery } }
+  h_lz:    !include { file: ../tiles/climate.yaml, vars: { uid: h_lz,    name: "Łazienka",     entity: climate.lz_thermostat, room_temp_entity: sensor.lz_temperatura_temperature, battery_entity: sensor.lz_temperatura_battery, trv_battery_entity: sensor.lz_thermostat_battery } }
 
   # ── Pulpit 4: SAMOCHÓD (MG HS) ─────────────────────────────────────────────
   # rząd 1: odczyty
@@ -212,11 +241,11 @@ packages:
     vars: { uid: suszarka, name: "Suszarka", icon: $ic_washing_machine, entity: sensor.grillplats_plug_moc, threshold: 5, finish_min: 3, finish_message: "Suszarka skończyła – wyjmij pranie" }
 
   # ── Pulpit 7: ROŚLINY (alert "Podlej" poniżej progu; progi zmienisz w HA/WWW)
-  p_kaktus:   !include { file: ../tiles/plant.yaml, vars: { uid: p_kaktus,   name: "Kaktus",               entity: sensor.sn_kaktus_soil_moisture,                    threshold: 15 } }
-  p_paprotka: !include { file: ../tiles/plant.yaml, vars: { uid: p_paprotka, name: "Paprotka",             entity: sensor.sn_paprotka_soil_moisture,                  threshold: 60 } }
-  p_sans_d:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_d,   name: "Sansewieria duża",     entity: sensor.sn_sansewieria_gwinejska_duza_soil_moisture, threshold: 30 } }
-  p_sans_m:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_m,   name: "Sansewieria mała",     entity: sensor.sn_sansewieria_gwinejska_mala_soil_moisture, threshold: 30 } }
-  p_sans_o:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_o,   name: "Sansewieria okno",     entity: sensor.sn_sansewieria_gwinejska_okno_soil_moisture, threshold: 30 } }
-  p_filo:     !include { file: ../tiles/plant.yaml, vars: { uid: p_filo,     name: "Filodendron",          entity: sensor.sn_filodendron_soil_moisture,               threshold: 40 } }
-  p_hedera:   !include { file: ../tiles/plant.yaml, vars: { uid: p_hedera,   name: "Hedera Eva",           entity: sensor.sn_hedera_eva_soil_moisture,                threshold: 40 } }
-  p_ficus:    !include { file: ../tiles/plant.yaml, vars: { uid: p_ficus,    name: "Ficus",                entity: sensor.sn_hedera_eva_tv_soil_moisture,             threshold: 30 } }
+  p_kaktus:   !include { file: ../tiles/plant.yaml, vars: { uid: p_kaktus,   name: "Kaktus",               entity: sensor.sn_kaktus_soil_moisture,                    threshold: 15, battery_entity: sensor.sn_kaktus_battery } }
+  p_paprotka: !include { file: ../tiles/plant.yaml, vars: { uid: p_paprotka, name: "Paprotka",             entity: sensor.sn_paprotka_soil_moisture,                  threshold: 60, battery_entity: sensor.sn_paprotka_battery } }
+  p_sans_d:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_d,   name: "Sansewieria duża",     entity: sensor.sn_sansewieria_gwinejska_duza_soil_moisture, threshold: 30, battery_entity: sensor.sn_sansewieria_gwinejska_duza_battery } }
+  p_sans_m:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_m,   name: "Sansewieria mała",     entity: sensor.sn_sansewieria_gwinejska_mala_soil_moisture, threshold: 30, battery_entity: sensor.sn_sansewieria_gwinejska_mala_battery } }
+  p_sans_o:   !include { file: ../tiles/plant.yaml, vars: { uid: p_sans_o,   name: "Sansewieria okno",     entity: sensor.sn_sansewieria_gwinejska_okno_soil_moisture, threshold: 30, battery_entity: sensor.sn_sansewieria_gwinejska_okno_battery } }
+  p_filo:     !include { file: ../tiles/plant.yaml, vars: { uid: p_filo,     name: "Filodendron",          entity: sensor.sn_filodendron_soil_moisture,               threshold: 40, battery_entity: sensor.sn_filodendron_battery } }
+  p_hedera:   !include { file: ../tiles/plant.yaml, vars: { uid: p_hedera,   name: "Hedera Eva",           entity: sensor.sn_hedera_eva_soil_moisture,                threshold: 40, battery_entity: sensor.sn_hedera_eva_battery } }
+  p_ficus:    !include { file: ../tiles/plant.yaml, vars: { uid: p_ficus,    name: "Ficus",                entity: sensor.sn_hedera_eva_tv_soil_moisture,             threshold: 30, battery_entity: sensor.sn_hedera_eva_tv_battery } }

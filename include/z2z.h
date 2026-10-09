@@ -346,11 +346,11 @@ inline std::string players(int n) {
 }
 
 
-// ISO 8601 z HA ("2026-10-09T22:00:00+00:00") → czas lokalny (strefa z komponentu time)
-inline bool iso_local(const char *iso, struct tm *out) {
-  if (!iso || strlen(iso) < 10) return false;
-  int y = atoi(iso), m = atoi(iso + 5), d = atoi(iso + 8), hh = 0, mi = 0, off = 0;
-  if (strlen(iso) >= 16) { hh = atoi(iso + 11); mi = atoi(iso + 14); }
+// ISO 8601 z HA ("2026-10-09T22:00:00+00:00") → czas uniksowy (0 = błąd / data bez godziny)
+inline uint32_t iso_ts(const char *iso) {
+  if (!iso || strlen(iso) < 16) return 0;
+  int y = atoi(iso), m = atoi(iso + 5), d = atoi(iso + 8), hh = atoi(iso + 11), mi = atoi(iso + 14), off = 0;
+  if (y < 2000 || m < 1 || m > 12) return 0;
   if (strlen(iso) >= 25 && (iso[19] == '+' || iso[19] == '-'))
     off = (iso[19] == '-' ? -1 : 1) * (atoi(iso + 20) * 60 + atoi(iso + 23));
   // dni od 1970-01-01 (Howard Hinnant, days_from_civil)
@@ -360,8 +360,27 @@ inline bool iso_local(const char *iso, struct tm *out) {
   unsigned doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1;
   unsigned doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
   long days = (long) era * 146097 + (long) doe - 719468;
-  time_t t = (time_t) days * 86400 + hh * 3600 + mi * 60 - off * 60;
+  return (uint32_t) ((int64_t) days * 86400 + hh * 3600 + mi * 60 - off * 60);
+}
+// … → czas lokalny (strefa z komponentu time)
+inline bool iso_local(const char *iso, struct tm *out) {
+  time_t t = iso_ts(iso);
+  if (!t) return false;
   return localtime_r(&t, out) != nullptr;
+}
+// "HH:MM" czasu lokalnego
+inline std::string hhmm(uint32_t ts) {
+  if (!ts) return "";
+  time_t t = ts; struct tm l{};
+  localtime_r(&t, &l);
+  char b[8]; snprintf(b, sizeof b, "%02d:%02d", l.tm_hour, l.tm_min);
+  return b;
+}
+// numer dnia (lokalnie) – do porównań "dziś / jutro"
+inline int local_yday(uint32_t ts) {
+  time_t t = ts; struct tm l{};
+  localtime_r(&t, &l);
+  return l.tm_year * 400 + l.tm_yday;
 }
 
 
@@ -369,6 +388,33 @@ inline bool iso_local(const char *iso, struct tm *out) {
 inline uint32_t now_ts() {
   time_t t = ::time(nullptr);
   return t > 1700000000 ? (uint32_t) t : 0;
+}
+
+
+// Bateryjka 4-stopniowa w rogu kafelka: >75% 4 kreski, >50% 3 (szare), >25% 2 (żółta), niżej 1 (czerwona).
+// Glify: battery / battery-80 / battery-50 / battery-20 (muszą być w foncie i24).
+static const uint32_t C_YELLOW = 0xFACC15;
+inline void battery(lv_obj_t *lbl, float pct) {
+  if (isnan(pct)) { lv_obj_add_flag(lbl, LV_OBJ_FLAG_HIDDEN); return; }
+  lv_obj_remove_flag(lbl, LV_OBJ_FLAG_HIDDEN);
+  const char *g; uint32_t c;
+  if (pct > 75) { g = "\U000F0079"; c = 0x4A5468; }
+  else if (pct > 50) { g = "\U000F0081"; c = 0x4A5468; }
+  else if (pct > 25) { g = "\U000F007E"; c = C_YELLOW; }
+  else { g = "\U000F007B"; c = C_ERR; }
+  lv_label_set_text(lbl, g);
+  set_text_color(lbl, c);
+}
+
+// "12 min", "1 h 05 min" – czas od podanej chwili (czas uniksowy)
+inline std::string since(uint32_t start) {
+  uint32_t now = now_ts();
+  if (!start || !now || now < start) return "";
+  uint32_t m = (now - start) / 60;
+  char b[24];
+  if (m >= 60) snprintf(b, sizeof b, "%u h %02u min", m / 60, m % 60);
+  else snprintf(b, sizeof b, "%u min", m);
+  return b;
 }
 
 }  // namespace z2z

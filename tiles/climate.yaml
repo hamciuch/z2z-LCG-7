@@ -2,13 +2,26 @@
 # Duża liczba = temperatura z czujnika w pokoju, mała = to, co mierzy głowica.
 # Zadana: +/- (krok 0,5°) albo szybki przycisk 25°, wysyłana do HA po 1,5 s od ostatniego dotknięcia.
 # Karta 385×170 – 4 pokoje mieszczą się 2×2 na ekranie.
-# vars: uid, entity, name, room_temp_entity
+# vars: uid, entity, name, room_temp_entity, battery_entity (czujnik w pokoju), trv_battery_entity (głowica)
+# Bateryjka w rogu pokazuje słabszą z dwóch baterii.
 globals:
   - id: ${uid}_sp
     type: float
     initial_value: "NAN"
 
 sensor:
+  - platform: homeassistant
+    id: ${uid}_b1
+    entity_id: ${battery_entity}
+    internal: true
+    on_value:
+      - script.execute: ${uid}_bat_draw
+  - platform: homeassistant
+    id: ${uid}_b2
+    entity_id: ${trv_battery_entity}
+    internal: true
+    on_value:
+      - script.execute: ${uid}_bat_draw
   - platform: homeassistant
     id: ${uid}_room
     entity_id: ${room_temp_entity}
@@ -52,6 +65,12 @@ text_sensor:
           lv_label_set_text(id(${uid}_act_lbl), heat ? "Grzeje" : "");
 
 script:
+  - id: ${uid}_bat_draw
+    then:
+      - lambda: |-
+          float a = id(${uid}_b1).state, b = id(${uid}_b2).state;
+          float m = isnan(a) ? b : (isnan(b) ? a : std::min(a, b));
+          z2z::battery(id(${uid}_bat), m);
   - id: ${uid}_adj
     parameters:
       delta: float
@@ -93,6 +112,13 @@ lvgl:
                   text_font: i24
                   text_color: c_muted
                   text: $ic_radiator
+              - label:
+                  id: ${uid}_bat
+                  align: TOP_RIGHT
+                  hidden: true
+                  text_font: i24
+                  text_color: 0x4A5468
+                  text: $ic_battery
               - label:
                   align: TOP_LEFT
                   x: 32

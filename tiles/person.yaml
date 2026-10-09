@@ -25,6 +25,8 @@ script:
           std::string key = std::string("${entity}").substr(7);  // po "person."
           std::string ic = z2z::kv(id(${uid}_zn).state, key);
           bool home = st == "home";
+          if (home) id(home_mask) |= (1 << ${slot}); else id(home_mask) &= ~(1 << ${slot});
+          id(security_refresh).execute();
           bool away = !home && (st.empty() || st == "not_home" || st == "unknown" || st == "unavailable" || ic == "away");
           const char *g;
           uint32_t c;

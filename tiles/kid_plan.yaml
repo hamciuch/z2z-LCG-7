@@ -1,0 +1,167 @@
+# Plan dziecka na pulpicie Teraz (Z2Z Librus + kalendarz zajęć dodatkowych).
+#  - w dzień szkolny: "wraca ok. 15:40" = koniec ostatniej lekcji albo zajęć dodatkowych,
+#    jeśli kończą się później; przed lekcjami: "lekcje 8:00–14:35"
+#  - po lekcjach (od 15:00): plan na jutro
+#  - zajęcia dodatkowe: osobna ikonka w rogu kafelka + nazwa i godzina
+# Panel pobiera kalendarze akcją calendar.get_events (dziś i jutro) co 15 min.
+# vars: uid, name, plan_calendar, extra_calendar
+globals:
+  - { id: "${uid}_t1", type: uint32_t, initial_value: "0" }   # dziś: pierwsza lekcja
+  - { id: "${uid}_t2", type: uint32_t, initial_value: "0" }   # dziś: koniec lekcji
+  - { id: "${uid}_j1", type: uint32_t, initial_value: "0" }   # jutro: pierwsza lekcja
+  - { id: "${uid}_j2", type: uint32_t, initial_value: "0" }   # jutro: koniec lekcji
+  - { id: "${uid}_x1", type: uint32_t, initial_value: "0" }   # najbliższe zajęcia dodatkowe: start
+  - { id: "${uid}_x2", type: uint32_t, initial_value: "0" }   #   … koniec
+  - { id: "${uid}_xn", type: std::string }                    #   … nazwa
+
+script:
+  - id: ${uid}_fetch
+    mode: single
+    then:
+      - homeassistant.action:
+          action: calendar.get_events
+          data:
+            entity_id: ${plan_calendar}
+          data_template:
+            start_date_time: "{{ today_at('00:00').isoformat() }}"
+            end_date_time: "{{ (today_at('00:00') + timedelta(days=2)).isoformat() }}"
+          capture_response: true
+          on_success:
+            - lambda: |-
+                JsonArrayConst ev = response["${plan_calendar}"]["events"].as<JsonArrayConst>();
+                uint32_t now = z2z::now_ts();
+                int today = now ? z2z::local_yday(now) : -1;
+                uint32_t t1 = 0, t2 = 0, j1 = 0, j2 = 0;
+                for (JsonObjectConst e : ev) {
+                  uint32_t s = z2z::iso_ts(e["start"] | ""), k = z2z::iso_ts(e["end"] | "");
+                  if (!s || !k) continue;   // wydarzenia całodniowe pomijamy
+                  int d = z2z::local_yday(s);
+                  if (d == today) { if (!t1 || s < t1) t1 = s; if (k > t2) t2 = k; }
+                  else if (d == today + 1) { if (!j1 || s < j1) j1 = s; if (k > j2) j2 = k; }
+                }
+                id(${uid}_t1) = t1; id(${uid}_t2) = t2; id(${uid}_j1) = j1; id(${uid}_j2) = j2;
+          on_error:
+            - logger.log:
+                level: WARN
+                format: "Plan ${name}: %s"
+                args: [ error.c_str() ]
+      - homeassistant.action:
+          action: calendar.get_events
+          data:
+            entity_id: ${extra_calendar}
+          data_template:
+            start_date_time: "{{ now().isoformat() }}"
+            end_date_time: "{{ (today_at('00:00') + timedelta(days=2)).isoformat() }}"
+          capture_response: true
+          on_success:
+            - lambda: |-
+                JsonArrayConst ev = response["${extra_calendar}"]["events"].as<JsonArrayConst>();
+                uint32_t x1 = 0, x2 = 0; std::string n;
+                for (JsonObjectConst e : ev) {
+                  uint32_t s = z2z::iso_ts(e["start"] | ""), k = z2z::iso_ts(e["end"] | "");
+                  if (!s || !k) continue;
+                  if (!x1 || s < x1) { x1 = s; x2 = k; n = (const char *) (e["summary"] | ""); }
+                }
+                id(${uid}_x1) = x1; id(${uid}_x2) = x2; id(${uid}_xn) = n;
+          on_error:
+            - logger.log:
+                level: WARN
+                format: "Zajęcia ${name}: %s"
+                args: [ error.c_str() ]
+      - script.execute: ${uid}_draw
+
+  - id: ${uid}_draw
+    then:
+      - lambda: |-
+          uint32_t now = z2z::now_ts();
+          if (!now) return;
+          int today = z2z::local_yday(now);
+          time_t tn = now; struct tm l{}; localtime_r(&tn, &l);
+          uint32_t t1 = id(${uid}_t1), t2 = id(${uid}_t2), j1 = id(${uid}_j1), j2 = id(${uid}_j2);
+          uint32_t x1 = id(${uid}_x1), x2 = id(${uid}_x2);
+          bool x_today = x1 && x2 > now && z2z::local_yday(x1) == today;
+          bool x_tomorrow = x1 && z2z::local_yday(x1) == today + 1;
+          std::string line, extra;
+          bool show = false;
+          if (t2 > now) {
+            uint32_t back = t2;
+            if (x_today && x2 > back) back = x2;
+            if (now < t1) line = "lekcje " + z2z::hhmm(t1) + "–" + z2z::hhmm(t2);
+            else line = "wraca ok. " + z2z::hhmm(back);
+            show = true;
+          } else if (x_today) {
+            line = "wraca ok. " + z2z::hhmm(x2);
+            show = true;
+          } else if (j1 && l.tm_hour >= 15) {
+            line = "jutro " + z2z::hhmm(j1) + "–" + z2z::hhmm(j2);
+            show = true;
+          }
+          if (x_today) extra = id(${uid}_xn) + " " + z2z::hhmm(x1);
+          else if (x_tomorrow && show && l.tm_hour >= 15) extra = "jutro: " + id(${uid}_xn) + " " + z2z::hhmm(x1);
+          lv_label_set_text(id(${uid}_line), line.c_str());
+          lv_label_set_text(id(${uid}_extra), extra.c_str());
+          z2z::show(id(${uid}_xico), !extra.empty());
+          z2z::set_visible(id(${uid}_tile), show);
+      - script.execute: home_refresh
+
+interval:
+  - interval: 15min
+    then:
+      - script.execute: ${uid}_fetch
+  - interval: 60s
+    then:
+      - script.execute: ${uid}_draw
+
+api:
+  on_client_connected:
+    - delay: 20s
+    - script.execute: ${uid}_fetch
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: alert_style
+            hidden: true
+            bg_color: c_card
+            border_color: c_accent
+            widgets:
+              - label:
+                  align: LEFT_MID
+                  text_font: i32
+                  text_color: c_accent
+                  text: $ic_school
+              - label:
+                  id: ${uid}_xico
+                  align: TOP_RIGHT
+                  hidden: true
+                  text_font: i24
+                  text_color: c_warn
+                  text: $ic_calendar_clock
+              - label:
+                  align: TOP_LEFT
+                  x: 52
+                  width: 200
+                  long_mode: DOT
+                  text_font: f18
+                  text: "${name}"
+              - label:
+                  id: ${uid}_line
+                  align: LEFT_MID
+                  x: 52
+                  y: 4
+                  width: 230
+                  long_mode: DOT
+                  text_font: f16
+                  text: ""
+              - label:
+                  id: ${uid}_extra
+                  align: BOTTOM_LEFT
+                  x: 52
+                  width: 230
+                  long_mode: DOT
+                  text_font: f14
+                  text_color: c_warn
+                  text: ""

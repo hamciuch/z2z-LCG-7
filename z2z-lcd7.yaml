@@ -38,6 +38,10 @@ packages:
   topbar: !include core/topbar.yaml
   weather: !include core/weather.yaml
   sockets_core: !include core/sockets.yaml
+  confirm: !include core/confirm.yaml
+  security: !include core/security.yaml
   home: !include config/home.yaml
+  batteries: !include config/batteries.yaml
+  leave: !include core/leave.yaml
   settings: !include core/settings.yaml
   overlays: !include core/overlays.yaml

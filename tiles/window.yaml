@@ -1,0 +1,129 @@
+# Okno w pokoju z głowicą: jak tiles/contact.yaml, a dodatkowo gdy okno jest
+# otwarte i głowica GRZEJE – kafelek pokazuje "grzeje!" i budzi ekran; dotknięcie
+# wyłącza grzanie w tym pokoju (z potwierdzeniem). Po zamknięciu okna panel
+# przywraca poprzedni tryb głowicy (tylko jeśli to on wyłączył grzanie).
+# vars: uid, name, icon, entity, battery_entity, rain_check, climate_entity
+globals:
+  - id: ${uid}_since
+    type: uint32_t
+    restore_value: true
+    initial_value: "0"
+  - id: ${uid}_rainwarn
+    type: bool
+    initial_value: "false"
+  - id: ${uid}_heatwarn
+    type: bool
+    initial_value: "false"
+  - id: ${uid}_paused_mode   # tryb głowicy sprzed wyłączenia przez panel ("" = nie wyłączaliśmy)
+    type: std::string
+    restore_value: true
+    max_restore_data_length: 16
+
+text_sensor:
+  - platform: homeassistant
+    id: ${uid}_s
+    entity_id: ${entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          bool open = x == "on";
+          if (open && id(${uid}_since) == 0) id(${uid}_since) = z2z::now_ts();
+          if (!open) id(${uid}_since) = 0;
+      - if:
+          condition:
+            lambda: return x == "off" && !id(${uid}_paused_mode).empty();
+          then:
+            - homeassistant.action:
+                action: climate.set_hvac_mode
+                data:
+                  entity_id: ${climate_entity}
+                data_template:
+                  hvac_mode: "{{ m }}"
+                variables:
+                  m: !lambda return id(${uid}_paused_mode);
+            - lambda: id(${uid}_paused_mode) = "";
+      - lambda: |-
+          z2z::set_visible(id(${uid}_tile), x == "on");
+      - script.execute: ${uid}_draw
+      - script.execute: home_refresh
+  - platform: homeassistant
+    id: ${uid}_act
+    entity_id: ${climate_entity}
+    attribute: hvac_action
+    internal: true
+    on_value:
+      - script.execute: ${uid}_draw
+  - platform: homeassistant
+    id: ${uid}_mode
+    entity_id: ${climate_entity}
+    internal: true
+
+sensor:
+  - platform: homeassistant
+    id: ${uid}_batt
+    entity_id: ${battery_entity}
+    internal: true
+    on_value:
+      - lambda: z2z::battery(id(${uid}_bat), x);
+
+interval:
+  - interval: 30s
+    then:
+      - script.execute: ${uid}_draw
+
+script:
+  - id: ${uid}_draw
+    then:
+      - lambda: |-
+          bool open = id(${uid}_s).state == "on";
+          if (open && id(${uid}_since) == 0) id(${uid}_since) = z2z::now_ts();
+          bool rain = ${rain_check} && open && z2z::in_list(id(ha_rain).state, "${rain_states}");
+          std::string a = id(${uid}_act).state;
+          bool heat = open && (a == "heating" || a == "preheating");
+          std::string t = z2z::since(id(${uid}_since));
+          if (rain) t = "PADA! " + t;
+          else if (heat) t = "grzeje! dotknij";
+          else if (!t.empty()) t = "otwarte " + t;
+          else t = "otwarte";
+          lv_label_set_text(id(${uid}_sub), t.c_str());
+          lv_obj_set_style_border_color(id(${uid}_tile), lv_color_hex(rain ? z2z::C_ERR : z2z::C_WARN), 0);
+          z2z::set_text_color(id(${uid}_ico), rain ? z2z::C_ERR : z2z::C_WARN);
+          if (heat && !rain) {
+            lv_obj_set_style_border_color(id(${uid}_tile), lv_color_hex(z2z::C_HEAT), 0);
+            z2z::set_text_color(id(${uid}_ico), z2z::C_HEAT);
+          }
+          if ((rain && !id(${uid}_rainwarn)) || (heat && !id(${uid}_heatwarn))) id(wake_screen).execute();
+          id(${uid}_rainwarn) = rain;
+          id(${uid}_heatwarn) = heat;
+
+lvgl:
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: ${uid}_tile
+            styles: tile_style
+            hidden: true
+            bg_color: 0x34200F
+            border_color: c_warn
+            on_click:
+              - if:
+                  condition:
+                    lambda: return id(${uid}_heatwarn);
+                  then:
+                    - lambda: |-
+                        std::string m = id(${uid}_mode).state;
+                        if (m.empty() || m == "off" || m == "unknown" || m == "unavailable") m = "auto";
+                        id(${uid}_paused_mode) = m;
+                    - script.execute:
+                        id: confirm_open
+                        q: "Wyłączyć grzanie: ${name}?"
+                        sub: "Okno jest otwarte, a głowica grzeje. Po zamknięciu okna panel sam włączy grzanie z powrotem."
+                        yes: "Wyłącz grzanie"
+                        action: "climate.turn_off"
+                        entity: "${climate_entity}"
+            widgets:
+              - label: { id: "${uid}_ico", align: TOP_LEFT, text_font: i32, text_color: c_warn, text: "${icon}" }
+              - label: { id: "${uid}_bat", align: TOP_RIGHT, hidden: true, text_font: i24, text_color: 0x4A5468, text: $ic_battery }
+              - label: { align: BOTTOM_LEFT, y: -20, width: 126, height: 24, long_mode: DOT, text_font: f16, text: "${name}" }
+              - label: { id: "${uid}_sub", align: BOTTOM_LEFT, width: 126, height: 22, long_mode: DOT, text_font: f14, text_color: c_muted, text: "" }

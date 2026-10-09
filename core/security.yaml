@@ -1,0 +1,139 @@
+# Bezpieczeństwo: zamek drzwi wejściowych i alarm Satel.
+#  - belka: kłódka (zamknięte / otwarte) i tarcza alarmu (rozbrojony / uzbrojony / ALARM)
+#  - Teraz: alert "Nikogo nie ma, a drzwi są otwarte" z przyciskiem Zamknij (z potwierdzeniem)
+#  - ALARM: czerwony ekran z nazwą strefy, budzi panel (dotknięcie = zamknij komunikat)
+globals:
+  - id: home_mask          # bity = domownicy w domu (ustawia tiles/person.yaml)
+    type: uint8_t
+    initial_value: "0"
+  - id: alarm_dismissed    # użytkownik zamknął czerwony ekran dla bieżącego alarmu
+    type: bool
+    initial_value: "false"
+
+text_sensor:
+  - platform: homeassistant
+    id: ha_lock
+    entity_id: ${lock_entity}
+    internal: true
+    on_value:
+      - script.execute: security_refresh
+  - platform: homeassistant
+    id: ha_alarm_1
+    entity_id: ${alarm_1}
+    internal: true
+    on_value: { script.execute: alarm_refresh }
+  - platform: homeassistant
+    id: ha_alarm_2
+    entity_id: ${alarm_2}
+    internal: true
+    on_value: { script.execute: alarm_refresh }
+  - platform: homeassistant
+    id: ha_alarm_3
+    entity_id: ${alarm_3}
+    internal: true
+    on_value: { script.execute: alarm_refresh }
+  - platform: homeassistant
+    id: ha_alarm_4
+    entity_id: ${alarm_4}
+    internal: true
+    on_value: { script.execute: alarm_refresh }
+  - platform: homeassistant
+    id: ha_alarm_5
+    entity_id: ${alarm_5}
+    internal: true
+    on_value: { script.execute: alarm_refresh }
+
+script:
+  - id: security_refresh
+    then:
+      - lambda: |-
+          std::string l = id(ha_lock).state;
+          bool locked = l == "locked";
+          bool known = !(l.empty() || l == "unknown" || l == "unavailable");
+          lv_label_set_text(id(ico_lock), locked ? "${ic_lock}" : (known ? "${ic_lock_open}" : "${ic_lock_alert}"));
+          z2z::set_text_color(id(ico_lock), locked ? z2z::C_OK : (known ? z2z::C_WARN : 0x4A5468));
+          bool nobody = id(home_mask) == 0;
+          bool show = nobody && known && !locked;
+          if (z2z::set_visible(id(sec_door_alert), show)) id(wake_screen).execute();
+      - script.execute: home_refresh
+
+  - id: alarm_refresh
+    then:
+      - lambda: |-
+          std::string st[] = {id(ha_alarm_1).state, id(ha_alarm_2).state, id(ha_alarm_3).state, id(ha_alarm_4).state, id(ha_alarm_5).state};
+          static const char *const NAME[] = {"${alarm_1_name}", "${alarm_2_name}", "${alarm_3_name}", "${alarm_4_name}", "${alarm_5_name}"};
+          int armed = 0, pending = 0; std::string trig;
+          for (int i = 0; i < 5; i++) {
+            if (st[i] == "triggered") { if (!trig.empty()) trig += ", "; trig += NAME[i]; }
+            else if (st[i].rfind("armed", 0) == 0) armed++;
+            else if (st[i] == "arming" || st[i] == "pending") pending++;
+          }
+          if (!trig.empty()) {
+            lv_label_set_text(id(ico_alarm), "${ic_shield_alert}");
+            z2z::set_text_color(id(ico_alarm), z2z::C_ERR);
+            lv_label_set_text(id(alarm_zone), trig.c_str());
+            if (!id(alarm_dismissed)) { z2z::show(id(alarm_screen), true); id(wake_screen).execute(); }
+          } else {
+            id(alarm_dismissed) = false;
+            z2z::show(id(alarm_screen), false);
+            lv_label_set_text(id(ico_alarm), armed || pending ? "${ic_shield_check}" : "${ic_shield_off_outline}");
+            z2z::set_text_color(id(ico_alarm), armed ? z2z::C_OK : (pending ? z2z::C_WARN : 0x4A5468));
+          }
+
+lvgl:
+  top_layer:
+    widgets:
+      # ikony na belce: kłódka nad tarczą, między datą a domownikami
+      - label:
+          id: ico_lock
+          x: 238
+          y: 3
+          text_font: i24
+          text_color: 0x4A5468
+          text: $ic_lock
+      - label:
+          id: ico_alarm
+          x: 238
+          y: 31
+          text_font: i24
+          text_color: 0x4A5468
+          text: $ic_shield_off_outline
+      # czerwony ekran alarmu
+      - obj:
+          id: alarm_screen
+          hidden: true
+          width: 100%
+          height: 100%
+          bg_color: 0xB91C1C
+          bg_opa: COVER
+          border_width: 0
+          radius: 0
+          on_click:
+            - lambda: |-
+                id(alarm_dismissed) = true;
+                z2z::show(id(alarm_screen), false);
+          widgets:
+            - label: { align: CENTER, y: -90, text_font: i48, text_color: 0xFFFFFF, text: $ic_shield_alert }
+            - label: { align: CENTER, y: -20, text_font: f64, text_color: 0xFFFFFF, text: "ALARM" }
+            - label: { id: alarm_zone, align: CENTER, y: 50, width: 700, long_mode: WRAP, text_align: CENTER, text_font: f28, text_color: 0xFFFFFF, text: "" }
+            - label: { align: BOTTOM_MID, y: -20, text_font: f16, text_color: 0xFFE4E4, text: "Dotknij, aby zamknąć komunikat" }
+
+  pages:
+    - id: !extend page_home
+      widgets:
+        - button:
+            id: sec_door_alert
+            styles: alert_style
+            hidden: true
+            on_click:
+              - script.execute:
+                  id: confirm_open
+                  q: "Zamknąć drzwi wejściowe?"
+                  sub: "Nikogo nie ma w domu, a zamek jest otwarty."
+                  yes: "Zamknij"
+                  action: "lock.lock"
+                  entity: "${lock_entity}"
+            widgets:
+              - label: { align: LEFT_MID, text_font: i32, text_color: c_warn, text: $ic_lock_open }
+              - label: { align: TOP_LEFT, x: 58, width: 222, long_mode: WRAP, text_font: f18, text: "Nikogo nie ma, drzwi otwarte" }
+              - label: { align: BOTTOM_LEFT, x: 58, text_font: f18, text_color: c_muted, text: "Dotknij, aby zamknąć" }

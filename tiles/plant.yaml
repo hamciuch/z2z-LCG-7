@@ -1,7 +1,13 @@
 # Roślina: karta na pulpicie "Rośliny" + alert "Podlej" na pulpicie głównym,
 # gdy wilgotność spadnie poniżej progu (próg edytowalny w HA / WWW).
-# vars: uid, entity (wilgotność gleby %), name, threshold
+# vars: uid, entity (wilgotność gleby %), name, threshold, battery_entity (bateria czujnika)
 sensor:
+  - platform: homeassistant
+    id: ${uid}_batt
+    entity_id: ${battery_entity}
+    internal: true
+    on_value:
+      - lambda: z2z::battery(id(${uid}_bat), x);
   - platform: homeassistant
     id: ${uid}_m
     entity_id: ${entity}
@@ -62,10 +68,17 @@ lvgl:
                   text_color: c_ok
                   text: $ic_sprout
               - label:
+                  id: ${uid}_bat
+                  align: TOP_RIGHT
+                  hidden: true
+                  text_font: i24
+                  text_color: 0x4A5468
+                  text: $ic_battery
+              - label:
                   align: TOP_LEFT
                   x: 30
                   y: 2
-                  width: 135
+                  width: 112
                   long_mode: WRAP
                   text_font: f14
                   text: "${name}"

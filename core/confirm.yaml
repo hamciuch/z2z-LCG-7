@@ -1,0 +1,95 @@
+# Wspólne okno potwierdzenia (zamek, "Wychodzę", wyłączenie grzania…).
+# Otwierasz z lambdy:  z2z_confirm("Pytanie?", "opis", "Tak", "lock.lock", "lock.x");
+# Po "Tak" panel wywołuje w HA akcję cfm_action na encji/encjach cfm_entity.
+globals:
+  - id: cfm_action
+    type: std::string
+  - id: cfm_entity
+    type: std::string
+
+script:
+  - id: confirm_open
+    parameters:
+      q: std::string
+      sub: std::string
+      yes: std::string
+      action: std::string
+      entity: std::string
+    then:
+      - lambda: |-
+          id(cfm_action) = action;
+          id(cfm_entity) = entity;
+          lv_label_set_text(id(cfm_lbl), q.c_str());
+          lv_label_set_text(id(cfm_sub), sub.c_str());
+          lv_label_set_text(id(cfm_yes_lbl), yes.c_str());
+          z2z::show(id(cfm_box), true);
+      - script.execute: wake_screen
+
+lvgl:
+  top_layer:
+    widgets:
+      - obj:
+          id: cfm_box
+          hidden: true
+          width: 100%
+          height: 100%
+          bg_color: 0x000000
+          bg_opa: 70%
+          border_width: 0
+          radius: 0
+          on_click:
+            - lvgl.widget.hide: cfm_box
+          widgets:
+            - obj:
+                align: CENTER
+                width: 560
+                height: 240
+                styles: card_style
+                bg_color: c_card2
+                clickable: true
+                scrollable: false
+                widgets:
+                  - label:
+                      id: cfm_lbl
+                      align: TOP_LEFT
+                      width: 530
+                      long_mode: WRAP
+                      text_font: f22
+                      text: ""
+                  - label:
+                      id: cfm_sub
+                      align: TOP_LEFT
+                      y: 40
+                      width: 530
+                      height: 90
+                      long_mode: WRAP
+                      text_font: f16
+                      text_color: c_muted
+                      text: ""
+                  - button:
+                      align: BOTTOM_LEFT
+                      width: 250
+                      height: 60
+                      bg_color: c_accent
+                      on_click:
+                        - lvgl.widget.hide: cfm_box
+                        - if:
+                            condition:
+                              lambda: return !id(cfm_action).empty() && !id(cfm_entity).empty();
+                            then:
+                              - homeassistant.action:
+                                  action: !lambda return id(cfm_action);
+                                  data_template:
+                                    entity_id: "{{ e }}"
+                                  variables:
+                                    e: !lambda return id(cfm_entity);
+                      widgets:
+                        - label: { id: cfm_yes_lbl, align: CENTER, text_font: f18, text: "Tak", text_color: 0xFFFFFF }
+                  - button:
+                      align: BOTTOM_RIGHT
+                      width: 250
+                      height: 60
+                      on_click:
+                        - lvgl.widget.hide: cfm_box
+                      widgets:
+                        - label: { align: CENTER, text_font: f18, text: "Anuluj" }
