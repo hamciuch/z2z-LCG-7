@@ -128,11 +128,11 @@ lvgl:
             on_click:
               - script.execute:
                   id: confirm_open
-                  q: "Zamknąć drzwi wejściowe?"
-                  sub: "Nikogo nie ma w domu, a zamek jest otwarty."
-                  yes: "Zamknij"
-                  action: "lock.lock"
-                  entity: "${lock_entity}"
+                  c_question: "Zamknąć drzwi wejściowe?"
+                  c_detail: "Nikogo nie ma w domu, a zamek jest otwarty."
+                  c_yes: "Zamknij"
+                  c_action: "lock.lock"
+                  c_entity: "${lock_entity}"
             widgets:
               - label: { align: LEFT_MID, text_font: i32, text_color: c_warn, text: $ic_lock_open }
               - label: { align: TOP_LEFT, x: 58, width: 222, long_mode: WRAP, text_font: f18, text: "Nikogo nie ma, drzwi otwarte" }

@@ -19,11 +19,11 @@ lvgl:
             on_click:
               - script.execute:
                   id: confirm_open
-                  q: "Wychodzę – wyłączyć?"
-                  sub: "${leave_desc}"
-                  yes: "Wyłącz"
-                  action: "homeassistant.turn_off"
-                  entity: "${leave_entities}"
+                  c_question: "Wychodzę – wyłączyć?"
+                  c_detail: "${leave_desc}"
+                  c_yes: "Wyłącz"
+                  c_action: "homeassistant.turn_off"
+                  c_entity: "${leave_entities}"
             widgets:
               - label:
                   align: TOP_LEFT

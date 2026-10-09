@@ -1,5 +1,5 @@
 # Wspólne okno potwierdzenia (zamek, "Wychodzę", wyłączenie grzania…).
-# Otwierasz z lambdy:  z2z_confirm("Pytanie?", "opis", "Tak", "lock.lock", "lock.x");
+# Otwierasz: script.execute: { id: confirm_open, c_question, c_detail, c_yes, c_action, c_entity }
 # Po "Tak" panel wywołuje w HA akcję cfm_action na encji/encjach cfm_entity.
 globals:
   - id: cfm_action
@@ -10,18 +10,18 @@ globals:
 script:
   - id: confirm_open
     parameters:
-      q: std::string
-      sub: std::string
-      yes: std::string
-      action: std::string
-      entity: std::string
+      c_question: std::string
+      c_detail: std::string
+      c_yes: std::string
+      c_action: std::string
+      c_entity: std::string
     then:
       - lambda: |-
-          id(cfm_action) = action;
-          id(cfm_entity) = entity;
-          lv_label_set_text(id(cfm_lbl), q.c_str());
-          lv_label_set_text(id(cfm_sub), sub.c_str());
-          lv_label_set_text(id(cfm_yes_lbl), yes.c_str());
+          id(cfm_action) = c_action;
+          id(cfm_entity) = c_entity;
+          lv_label_set_text(id(cfm_lbl), c_question.c_str());
+          lv_label_set_text(id(cfm_sub), c_detail.c_str());
+          lv_label_set_text(id(cfm_yes_lbl), c_yes.c_str());
           z2z::show(id(cfm_box), true);
       - script.execute: wake_screen
 

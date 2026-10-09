@@ -117,11 +117,11 @@ lvgl:
                         id(${uid}_paused_mode) = m;
                     - script.execute:
                         id: confirm_open
-                        q: "Wyłączyć grzanie: ${name}?"
-                        sub: "Okno jest otwarte, a głowica grzeje. Po zamknięciu okna panel sam włączy grzanie z powrotem."
-                        yes: "Wyłącz grzanie"
-                        action: "climate.turn_off"
-                        entity: "${climate_entity}"
+                        c_question: "Wyłączyć grzanie: ${name}?"
+                        c_detail: "Okno jest otwarte, a głowica grzeje. Po zamknięciu okna panel sam włączy grzanie z powrotem."
+                        c_yes: "Wyłącz grzanie"
+                        c_action: "climate.turn_off"
+                        c_entity: "${climate_entity}"
             widgets:
               - label: { id: "${uid}_ico", align: TOP_LEFT, text_font: i32, text_color: c_warn, text: "${icon}" }
               - label: { id: "${uid}_bat", align: TOP_RIGHT, hidden: true, text_font: i24, text_color: 0x4A5468, text: $ic_battery }
