@@ -73,7 +73,21 @@ script:
           capture_response: true
           on_success:
             - lambda: |-
+                // HA zwraca {"<encja>": {"forecast": [...]}} – sprawdzamy też inne spotykane układy
                 JsonArrayConst f = response["${weather_entity}"]["forecast"].as<JsonArrayConst>();
+                if (f.isNull()) f = response["response"]["${weather_entity}"]["forecast"].as<JsonArrayConst>();
+                if (f.isNull()) f = response["forecast"].as<JsonArrayConst>();
+                if (f.isNull()) {
+                  for (JsonPairConst kv : response) {
+                    JsonArrayConst a = kv.value()["forecast"].as<JsonArrayConst>();
+                    if (!a.isNull()) { f = a; break; }
+                  }
+                }
+                if (f.isNull() || f.size() == 0) {
+                  std::string raw;
+                  serializeJson(response, raw);
+                  ESP_LOGW("pogoda", "Nieoczekiwana odpowiedź get_forecasts (%u B): %.400s", (unsigned) raw.size(), raw.c_str());
+                }
                 lv_obj_t *card[] = {id(wd0), id(wd1), id(wd2), id(wd3), id(wd4), id(wd5), id(wd6)};
                 lv_obj_t *day[] = {id(wd0_day), id(wd1_day), id(wd2_day), id(wd3_day), id(wd4_day), id(wd5_day), id(wd6_day)};
                 lv_obj_t *ico[] = {id(wd0_ico), id(wd1_ico), id(wd2_ico), id(wd3_ico), id(wd4_ico), id(wd5_ico), id(wd6_ico)};
@@ -105,7 +119,7 @@ script:
                   lv_label_set_text(mm[i], (isnan(pr) || pr <= 0) ? "" : z2z::fmt(pr, 1, " mm").c_str());
                   lv_label_set_text(pp[i], isnan(pb) ? "" : z2z::fmt(pb, 0, "%").c_str());
                 }
-                if (n == 0) lv_label_set_text(id(wn_upd), "Brak prognozy z HA");
+                if (n == 0) lv_label_set_text(id(wn_upd), "Brak prognozy z HA (szczegóły w logach)");
                 else if (now.is_valid()) lv_label_set_text_fmt(id(wn_upd), "Prognoza z %02d:%02d", now.hour, now.minute);
                 else lv_label_set_text(id(wn_upd), "");
           on_error:
