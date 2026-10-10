@@ -1,0 +1,18 @@
+{
+  "name": "Panel Z2Z",
+  "version": "2026.10.10.29",
+  "home_assistant_domain": "esphome",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [ { "path": "z2z-panel.factory.bin", "offset": 0 } ],
+      "ota": {
+        "path": "z2z-panel.ota.bin",
+        "md5": "9040ca165d08258065e6ec688e371022",
+        "summary": "Paczki InPost: ikona na belce (kolor wg najpilniejszej paczki) i ekran przesyłek",
+        "release_url": "https://github.com/hamciuch/z2z-LCG-7/commits/19f73e15471f7b9a63e4720779a209c4b61054f9"
+      }
+    }
+  ]
+}

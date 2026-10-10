@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel Z2Z – instalator</title>
+  <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+  <style>
+    :root { color-scheme: dark; --bg:#0f1115; --card:#1c2028; --text:#eceff1; --muted:#8a94a6; --accent:#ffb300; }
+    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width:720px; margin:0 auto; padding:40px 16px 64px; }
+    h1 { font-size:28px; margin:0 0 4px; }
+    .ver { color:var(--muted); margin:0 0 28px; }
+    .card { background:var(--card); border-radius:16px; padding:20px 22px; margin:16px 0; }
+    h2 { font-size:18px; margin:0 0 10px; color:var(--accent); }
+    ol { margin:0; padding-left:20px; } li { margin:4px 0; }
+    code { background:#262b35; padding:1px 6px; border-radius:6px; font-size:14px; }
+    a { color:var(--accent); }
+    esp-web-install-button button[slot="activate"] {
+      background:var(--accent); color:#000; border:0; border-radius:12px; padding:14px 24px;
+      font-size:17px; font-weight:600; cursor:pointer;
+    }
+    .muted { color:var(--muted); font-size:14px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Panel Z2Z</h1>
+  <p class="ver">Waveshare ESP32-S3-Touch-LCD-7 · firmware <strong>2026.10.10.29</strong></p>
+
+  <div class="card">
+    <h2>1. Pierwsze wgranie (USB)</h2>
+    <ol>
+      <li>Podłącz panel kablem USB-C do gniazda <strong>USB</strong> (nie UART).</li>
+      <li>Otwórz tę stronę w Chrome / Edge na komputerze.</li>
+      <li>Kliknij przycisk poniżej, wybierz port i potwierdź instalację.</li>
+      <li>Po wgraniu instalator zapyta o WiFi (Improv) – podaj sieć i hasło.</li>
+    </ol>
+    <p style="margin-top:18px">
+      <esp-web-install-button manifest="firmware/manifest.json">
+        <button slot="activate">Zainstaluj na panelu</button>
+        <span slot="unsupported">Twoja przeglądarka nie obsługuje Web Serial – użyj Chrome lub Edge.</span>
+        <span slot="not-allowed">Strona musi być otwarta przez HTTPS.</span>
+      </esp-web-install-button>
+    </p>
+    <p class="muted">Jeśli port się nie pojawia: przytrzymaj BOOT, wciśnij RESET, puść BOOT i spróbuj ponownie.</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Home Assistant</h2>
+    <ol>
+      <li>HA wykryje panel sam (Ustawienia → Urządzenia → ESPHome). Podaj klucz <code>API_ENCRYPTION_KEY</code>.</li>
+      <li>W opcjach integracji ESPHome dla panelu włącz <em>„Allow the device to perform Home Assistant actions”</em> – bez tego dotyk nie wyłączy świateł.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>3. Aktualizacje (OTA)</h2>
+    <p>Każdy push na <code>main</code> buduje nową wersję i publikuje ją tutaj. Panel sprawdza
+    <a href="firmware/manifest.json">firmware/manifest.json</a> co 6 h – aktualizację zainstalujesz
+    z HA (encja <em>Firmware</em>), z ekranu (dotknij zegara) albo automatycznie (przełącznik
+    „Automatyczne aktualizacje z GitHub”).</p>
+    <p class="muted">Repozytorium: <a href="https://github.com/hamciuch/z2z-LCG-7">github.com/hamciuch/z2z-LCG-7</a></p>
+  </div>
+</main>
+</body>
+</html>
