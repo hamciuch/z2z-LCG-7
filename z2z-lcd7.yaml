@@ -37,6 +37,7 @@ packages:
   pages: !include core/pages.yaml
   topbar: !include core/topbar.yaml
   weather: !include core/weather.yaml
+  parcels: !include core/parcels.yaml
   sockets_core: !include core/sockets.yaml
   confirm: !include core/confirm.yaml
   security: !include core/security.yaml

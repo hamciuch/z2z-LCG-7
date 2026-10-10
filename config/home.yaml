@@ -20,6 +20,7 @@ substitutions:
   humidity_entity: sensor.stacja_pogody_esp32_bme280_humidity
   pressure_entity: sensor.stacja_pogody_esp32_bme280_pressure
   weather_entity: weather.forecast_dom                                  # prognoza (dotknięcie pogody na belce)
+  parcels_entity: sensor.paczki_panel                                  # pomocnik-szablon z tools/ha_paczki.jinja (paczki InPost)
   # Pomocnik-szablon w HA z ikonami stref: "marek=home;ania=briefcase;…" (README)
   # Przycisk "Wychodzę" (Teraz): wyłącza TYLKO te encje. Bez pralki, suszarki,
   # serwera, drukarki 3D i komputerów – celowo, nie dopisuj ich.

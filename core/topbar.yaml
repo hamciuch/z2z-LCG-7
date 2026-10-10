@@ -51,7 +51,7 @@ lvgl:
                 id: btn_weather
                 x: 532
                 align: LEFT_MID
-                width: 176
+                width: 142
                 height: 56
                 bg_opa: TRANSP
                 shadow_width: 0
@@ -78,15 +78,35 @@ lvgl:
                       x: 42
                       y: -3
                       align: BOTTOM_LEFT
-                      width: 132
+                      width: 100
                       long_mode: CLIP
                       text_font: f14
                       text_color: c_muted
                       text: ""
+            # paczki InPost: kolor = najpilniejsza paczka (core/parcels.yaml);
+            # dotknięcie otwiera ekran przesyłek
+            - button:
+                id: btn_parcels
+                x: 676
+                align: LEFT_MID
+                width: 40
+                height: 56
+                bg_opa: TRANSP
+                shadow_width: 0
+                pad_all: 0
+                on_click:
+                  - script.execute: parcels_open
+                widgets:
+                  - label:
+                      id: ico_parcel
+                      align: CENTER
+                      text_font: i32
+                      text_color: c_muted
+                      text: $ic_package
             # serwer
             - label:
                 id: ico_server
-                x: 712
+                x: 718
                 align: LEFT_MID
                 text_font: i32
                 text_color: c_muted
@@ -94,7 +114,7 @@ lvgl:
             # Home Assistant / WiFi
             - label:
                 id: ico_ha
-                x: 756
+                x: 760
                 align: LEFT_MID
                 text_font: i32
                 text_color: c_muted

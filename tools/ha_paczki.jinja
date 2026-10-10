@@ -1,0 +1,21 @@
+{#- Pomocnik dla paneli: krótka lista paczek InPost (stan ≤ 255 znaków).
+    HA → Ustawienia → Urządzenia i usługi → Pomocnicy → Utwórz pomocnika →
+    Szablon → Szablon czujnika. Nazwa: "Paczki panel" (encja sensor.paczki_panel),
+    w pole "Szablon stanu" wklej wszystko poniżej. Jednostki/klasy nie ustawiaj.
+    Format: R|paczkomat|nadawca|termin_odbioru_unix ; T|paczkomat|nadawca|0 -#}
+{%- set ready = state_attr('sensor.inpost_500265223_oczekuje_na_odbior', 'parcels') or [] -%}
+{%- set coming = state_attr('sensor.inpost_500265223_nadchodzace_przesylki', 'parcels') or [] -%}
+{%- set ns = namespace(out=[]) -%}
+{%- for p in ready -%}
+  {%- set r = p.raw or {} -%}
+  {%- set exp = r.get('expiryDate') or r.get('pickUpExpiryDate') -%}
+  {%- set st = r.get('storedDate') -%}
+  {%- set dl = as_timestamp(exp, 0) if exp else ((as_timestamp(st, 0) + 172800) if st else 0) -%}
+  {%- set s = ((p.sender or '') | string).split('@')[0] | replace('|', ' ') | replace(';', ' ') -%}
+  {%- set ns.out = ns.out + ['R|' ~ (p.pickup_point or '') ~ '|' ~ s[:14] ~ '|' ~ (dl | int)] -%}
+{%- endfor -%}
+{%- for p in coming -%}
+  {%- set s = ((p.sender or '') | string).split('@')[0] | replace('|', ' ') | replace(';', ' ') -%}
+  {%- set ns.out = ns.out + ['T|' ~ (p.pickup_point or '') ~ '|' ~ s[:14] ~ '|0'] -%}
+{%- endfor -%}
+{{ (ns.out | join(';'))[:255] }}

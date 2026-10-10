@@ -1,0 +1,181 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Paczki InPost: ikona na belce + ekran przesyłek (dotknięcie ikony).
+#
+# Dane bierze z pomocnika-szablonu w HA (${parcels_entity}) – krótka lista
+# paczek zamiast wielkich atrybutów integracji (README → Paczki):
+#   "R|WAW31H|amazon|1760280302;T|WAW31H|BOTLAND|0"
+#   R = czeka w paczkomacie (ostatnie pole = termin odbioru, czas uniksowy)
+#   T = w drodze
+#
+# Kolor ikony = najpilniejsza paczka:
+#   czerwona  – czeka i zostało < 24 h      żółta – czeka do odbioru
+#   niebieska – w drodze                    zielona – brak paczek
+# ─────────────────────────────────────────────────────────────────────────────
+
+globals:
+  - id: parcels_level          # 0 brak, 1 w drodze, 2 do odbioru, 3 < 24 h
+    type: int
+    initial_value: "-1"
+
+text_sensor:
+  - platform: homeassistant
+    id: ha_parcels
+    entity_id: ${parcels_entity}
+    internal: true
+    on_value:
+      - script.execute: parcels_draw
+
+interval:
+  - interval: 60s
+    then:
+      - script.execute: parcels_draw
+
+script:
+  - id: parcels_open
+    then:
+      - script.execute: parcels_draw
+      - lvgl.page.show:
+          id: page_parcels
+          animation: FADE_IN
+          time: 200ms
+
+  - id: parcels_draw
+    mode: restart
+    then:
+      - lambda: |-
+          struct P { char kind; std::string point, sender; uint32_t deadline; };
+          std::vector<P> ps;
+          const std::string &raw = id(ha_parcels).state;
+          bool known = !(raw == "unknown" || raw == "unavailable");
+          size_t pos = 0;
+          while (known && pos < raw.size()) {
+            size_t e = raw.find(';', pos);
+            if (e == std::string::npos) e = raw.size();
+            std::string it = raw.substr(pos, e - pos);
+            pos = e + 1;
+            std::string f[4];
+            size_t a = 0;
+            int n = 0;
+            for (; n < 4; n++) {
+              size_t b = it.find('|', a);
+              f[n] = it.substr(a, b == std::string::npos ? std::string::npos : b - a);
+              if (b == std::string::npos) { n++; break; }
+              a = b + 1;
+            }
+            if (n < 4 || f[0].empty() || (f[0][0] != 'R' && f[0][0] != 'T')) continue;   // urwany wpis
+            ps.push_back({f[0][0], f[1], f[2], (uint32_t) strtoul(f[3].c_str(), nullptr, 10)});
+          }
+          // kolejność: do odbioru wg terminu, potem w drodze
+          std::sort(ps.begin(), ps.end(), [](const P &x, const P &y) {
+            if (x.kind != y.kind) return x.kind == 'R';
+            return x.deadline < y.deadline;
+          });
+
+          uint32_t now = z2z::now_ts();
+          int level = 0;
+          for (auto &p : ps) {
+            int l = 1;
+            if (p.kind == 'R') l = (p.deadline && now && p.deadline < now + 86400) ? 3 : 2;
+            if (l > level) level = l;
+          }
+          static const uint32_t COL[4] = {z2z::C_OK, z2z::C_ACCENT, z2z::C_YELLOW, z2z::C_ERR};
+          uint32_t col = known ? COL[level] : z2z::C_MUTED;
+          lv_label_set_text(id(ico_parcel), level == 1 ? "${ic_truck_delivery}" : "${ic_package}");
+          z2z::set_text_color(id(ico_parcel), col);
+          if (level == 3 && id(parcels_level) != 3 && id(parcels_level) != -1) id(wake_screen).execute();
+          id(parcels_level) = level;
+
+          // ── ekran przesyłek ──
+          int nr = 0, nt = 0;
+          for (auto &p : ps) (p.kind == 'R' ? nr : nt)++;
+          char h[96];
+          if (!known) snprintf(h, sizeof h, "Brak danych z InPost");
+          else if (ps.empty()) snprintf(h, sizeof h, "Brak paczek");
+          else snprintf(h, sizeof h, "Do odbioru: %d   ·   W drodze: %d", nr, nt);
+          lv_label_set_text(id(pc_head), h);
+          z2z::set_text_color(id(pc_head_ico), col);
+
+          static const char *const DN[7] = {"nd", "pn", "wt", "śr", "cz", "pt", "sb"};
+          lv_obj_t *rows[6] = {id(pc_r0), id(pc_r1), id(pc_r2), id(pc_r3), id(pc_r4), id(pc_r5)};
+          for (int i = 0; i < 6; i++) {
+            lv_obj_t *r = rows[i];
+            if (i >= (int) ps.size()) { z2z::show(r, false); continue; }
+            const P &p = ps[i];
+            lv_obj_t *ico = lv_obj_get_child(r, 0), *t1 = lv_obj_get_child(r, 1), *t2 = lv_obj_get_child(r, 2),
+                     *t3 = lv_obj_get_child(r, 3), *t4 = lv_obj_get_child(r, 4);
+            std::string title, right, right2;
+            uint32_t c;
+            if (p.kind == 'R') {
+              title = "Do odbioru · " + p.point;
+              int32_t rem = (p.deadline && now) ? (int32_t) (p.deadline - now) : INT32_MAX;
+              c = rem < 86400 ? z2z::C_ERR : z2z::C_YELLOW;
+              char b[48];
+              if (rem == INT32_MAX) snprintf(b, sizeof b, "termin nieznany");
+              else if (rem <= 0) snprintf(b, sizeof b, "termin minął!");
+              else if (rem < 86400) snprintf(b, sizeof b, "zostało %d h %02d min", (int) (rem / 3600), (int) (rem % 3600 / 60));
+              else snprintf(b, sizeof b, "zostało %d d %d h", (int) (rem / 86400), (int) (rem % 86400 / 3600));
+              right = b;
+              if (p.deadline) {
+                time_t t = p.deadline; struct tm l{};
+                localtime_r(&t, &l);
+                snprintf(b, sizeof b, "do %s %d.%02d %02d:%02d", DN[l.tm_wday], l.tm_mday, l.tm_mon + 1, l.tm_hour, l.tm_min);
+                right2 = b;
+              }
+            } else {
+              title = "W drodze" + (p.point.empty() ? std::string("") : " · " + p.point);
+              c = z2z::C_ACCENT;
+              right = "w drodze";
+            }
+            lv_label_set_text(ico, p.kind == 'R' ? "${ic_package}" : "${ic_truck_delivery}");
+            z2z::set_text_color(ico, c);
+            lv_label_set_text(t1, title.c_str());
+            lv_label_set_text(t2, p.sender.empty() ? "" : ("od: " + p.sender).c_str());
+            lv_label_set_text(t3, right.c_str());
+            z2z::set_text_color(t3, c);
+            lv_label_set_text(t4, right2.c_str());
+            lv_obj_set_style_border_color(r, lv_color_hex(c), 0);
+            z2z::show(r, true);
+          }
+          z2z::show(id(pc_more), ps.size() > 6);
+          if (ps.size() > 6) lv_label_set_text_fmt(id(pc_more), "+ %d kolejne w aplikacji InPost", (int) ps.size() - 6);
+
+lvgl:
+  pages:
+    - id: !extend page_parcels
+      widgets:
+        - obj:
+            width: 780
+            height: 44
+            radius: 14
+            bg_color: c_card
+            border_width: 0
+            pad_left: 12
+            scrollable: false
+            clickable: false
+            widgets:
+              - label: { id: pc_head_ico, align: LEFT_MID, text_font: i32, text_color: c_muted, text: $ic_package }
+              - label: { id: pc_head, align: LEFT_MID, x: 46, text_font: f22, text: "" }
+              - label: { id: pc_more, align: RIGHT_MID, x: -6, hidden: true, text_font: f16, text_color: c_muted, text: "" }
+        - obj: &pc_row
+            id: pc_r0
+            hidden: true
+            width: 385
+            height: 88
+            radius: 14
+            bg_color: c_card
+            border_width: 2
+            border_color: c_muted
+            pad_all: 10
+            scrollable: false
+            clickable: false
+            widgets:
+              - label: { align: LEFT_MID, text_font: i32, text: "" }
+              - label: { align: TOP_LEFT, x: 44, width: 310, long_mode: DOT, text_font: f18, text: "" }
+              - label: { align: TOP_LEFT, x: 44, y: 24, width: 310, long_mode: DOT, text_font: f14, text_color: c_muted, text: "" }
+              - label: { align: BOTTOM_LEFT, x: 44, width: 180, long_mode: DOT, text_font: f18, text: "" }
+              - label: { align: BOTTOM_RIGHT, width: 140, long_mode: DOT, text_align: RIGHT, text_font: f14, text_color: c_muted, text: "" }
+        - obj: { <<: *pc_row, id: pc_r1 }
+        - obj: { <<: *pc_row, id: pc_r2 }
+        - obj: { <<: *pc_row, id: pc_r3 }
+        - obj: { <<: *pc_row, id: pc_r4 }
+        - obj: { <<: *pc_row, id: pc_r5 }

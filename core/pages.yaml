@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Pulpity (strony LVGL), nawigacja dolnym paskiem ikon, wygaszanie ekranu.
 #   0 Teraz · 1 Światła · 2 Gniazdka · 3 Ogrzewanie · 4 Auto · 5 Odkurzacz · 6 AGD · 7 Rośliny · 8 Szkoła
-#   (+ Pogoda: bez ikony na dole, otwierana z belki)
+#   (+ Pogoda i Paczki: bez ikony na dole, otwierane z belki)
 # Kafelki z tiles/*.yaml dopisują się do stron przez `!extend page_xxx`.
 # Numery pulpitów używa "goto" w alertach i akcja API show_page.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -130,6 +130,16 @@ lvgl:
 
     # Pogoda – poza dolnym paskiem, otwiera ją dotknięcie pogody na belce (core/weather.yaml)
     - id: page_weather
+      skip: true
+      styles: page_style
+      scroll_dir: NONE
+      scrollable: false
+      layout: *flex
+      on_load:
+        - script.execute: { id: dots_set, idx: -1 }
+
+    # Paczki InPost – poza dolnym paskiem, otwiera je dotknięcie ikony paczki na belce (core/parcels.yaml)
+    - id: page_parcels
       skip: true
       styles: page_style
       scroll_dir: NONE
