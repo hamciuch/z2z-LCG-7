@@ -251,7 +251,6 @@ packages:
   vr_8: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_8, segment: 8, name: "Salon z Aneksem",    icon: $ic_sofa } }
   vr_1: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_1, segment: 1, name: "Sypialnia rodziców", icon: $ic_bed } }
   vr_2: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_2, segment: 2, name: "Pokój dzieci",       icon: $ic_teddy_bear } }
-  vr_6: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_6, segment: 6, name: "Pomieszczenie 6",    icon: $ic_home } }
   vr_7: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_7, segment: 7, name: "Korytarz wejście",   icon: $ic_door } }
   vr_3: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_3, segment: 3, name: "Korytarz",           icon: $ic_door } }
   vr_4: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_4, segment: 4, name: "Łazienka",           icon: $ic_shower } }
