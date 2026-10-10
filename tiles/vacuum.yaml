@@ -44,8 +44,10 @@ text_sensor:
     on_value:
       - lambda: |-
           bool ok = !(x == "unavailable" || x == "unknown" || x.empty());
-          lv_label_set_text(id(vac_room_lbl), ok ? x.c_str() : "");
-          if (ok) lv_label_set_text(id(vac_home_sub), x.c_str());
+          std::string r = z2z::kv("${vac_room_names}", x);
+          if (r.empty()) r = x;
+          lv_label_set_text(id(vac_room_lbl), ok ? r.c_str() : "");
+          if (ok) lv_label_set_text(id(vac_home_sub), r.c_str());
 
 sensor:
   - platform: homeassistant

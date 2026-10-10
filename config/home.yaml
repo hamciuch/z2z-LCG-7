@@ -11,6 +11,8 @@
 # ═════════════════════════════════════════════════════════════════════════════
 
 substitutions:
+  # Odkurzacz: nazwy pomieszczeń z aplikacji Dreame → nazwy na panelu (bieżące pomieszczenie)
+  vac_room_names: "Salon=Salon z Aneksem;Główna Sypialnia 3=Sypialnia rodziców;Główna Sypialnia 2=Pokój dzieci;Korytarz=Korytarz wejście;Korytarz 2=Korytarz;Łazienka 2=Toaleta"
   # ── Belka główna ───────────────────────────────────────────────────────────
   balcony_temp_entity: sensor.stacja_pogody_esp32_bme280_temperature   # SPRAWDŹ: stacja pogody na balkonie
   rain_entity: binary_sensor.tr_czujnik_deszczu_rain                    # on = pada
@@ -246,14 +248,14 @@ packages:
   # ── Pulpit 5: ODKURZACZ Dreame X40 (tylko wybrane pomieszczenia) ───────────
   # Pomieszczenia z mapy "Dom" (ID segmentu = numer z aplikacji Dreame); nazwy możesz zmienić
   vac: !include { file: ../tiles/vacuum.yaml, vars: { name: "Odkurzacz", prefix: x40_ultra_complete } }
-  vr_8: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_8, segment: 8, name: "Salon",              icon: $ic_sofa } }
-  vr_1: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_1, segment: 1, name: "Główna Sypialnia 3", icon: $ic_bed } }
-  vr_2: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_2, segment: 2, name: "Główna Sypialnia 2", icon: $ic_bed } }
+  vr_8: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_8, segment: 8, name: "Salon z Aneksem",    icon: $ic_sofa } }
+  vr_1: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_1, segment: 1, name: "Sypialnia rodziców", icon: $ic_bed } }
+  vr_2: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_2, segment: 2, name: "Pokój dzieci",       icon: $ic_teddy_bear } }
   vr_6: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_6, segment: 6, name: "Pomieszczenie 6",    icon: $ic_home } }
-  vr_7: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_7, segment: 7, name: "Korytarz",           icon: $ic_door } }
-  vr_3: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_3, segment: 3, name: "Korytarz 2",         icon: $ic_door } }
+  vr_7: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_7, segment: 7, name: "Korytarz wejście",   icon: $ic_door } }
+  vr_3: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_3, segment: 3, name: "Korytarz",           icon: $ic_door } }
   vr_4: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_4, segment: 4, name: "Łazienka",           icon: $ic_shower } }
-  vr_5: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_5, segment: 5, name: "Łazienka 2",         icon: $ic_shower } }
+  vr_5: !include { file: ../tiles/vacuum_room.yaml, vars: { uid: vr_5, segment: 5, name: "Toaleta",            icon: $ic_toilet } }
   vac_ctrl: !include { file: ../tiles/vacuum_controls.yaml, vars: { prefix: x40_ultra_complete } }
 
   # ── Pulpit 6: AGD – zmywarka, pralka, suszarka ─────────────────────────────
